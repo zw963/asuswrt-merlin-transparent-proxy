@@ -1,4 +1,6 @@
-# asuswrt-merlin-transparent-proxy
+# 使用华硕 merlin 架设透明代理
+
+Billy.Zheng 2016/07/24
 
 本文基于网络上大量资料整理，恕在此不一一列举，没有大量网友的无私分享，就不会有这个文章。
 
@@ -14,11 +16,11 @@
    并且开启远程 SSH 登陆。
 3. 自动安装脚本需要 ssh, scp 命令支持，这在 Linux 下完全不是问题，如果是 Windows 下，请参考一键部署脚本自行解决。
 
-# 目标
+## 部署
 本项目的目的，是使用目前流行的白名单方式，仅仅需要维护一份国内网站的域名列表[dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list),
 即可实现完美的透明 FQ，实现针对 G!!!F!!!W 的自动穿越。
 
-## 初始化 jffs.
+### 初始化 jffs.
 
 插入一个 U 盘到路由器，自己想办法确保这个 U 盘是 ext3 分区格式，在此不详述，自行度娘解决。
 
@@ -60,7 +62,7 @@ admin@RT-AC66U-20F0:/tmp/mnt/sda/asusware/etc# entware-setup.sh
 
 请务必确保 opkg 工具可用的情况下再进入下一步，如果出现问题，重启后再次执行 entware-setup.sh.
 
-## clone 本项目到本地，并新增 shadowsocks.json 配置脚本
+### clone 项目到本地，并新增 shadowsocks.json 配置脚本
 
 首先克隆项目到本地.
 
@@ -92,7 +94,7 @@ $ touch shadowsocks.json
 注意：确保 local_address 设定为你的路由器 ip 地址。
 创建 ss 配置文件完毕后，进入下一步。
 
-## 运行一键部署脚本进行部署. 
+### 运行一键部署脚本进行部署. 
 
 请尽量采用 public key 免密码方式通过访问你的路由器, 否则这个脚本会停下来多次让你输入 ssh 密码，不胜其烦。
 即：网页中，SSH Authentication key 部分加入你的 public key, 具体使用请自行度娘解决。
@@ -110,7 +112,7 @@ $ touch shadowsocks.json
 
 警告: __如果重启后出现任何部署问题，请拔掉 U 盘, 再重新启动，待启动正常后，再插入 U 盘，修复问题后再重启即可。__
 
-# 基本思路
+## 基本思路
 
 1. 路由器启动 ss-redir, 连接远程 ss-server, 并监听 1080 端口.
 2. 路由器启动 ChinaDNS, 监听 5356 端口.
@@ -132,7 +134,7 @@ $ touch shadowsocks.json
 dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，又加了 3W 多条 ipset 策略, 总共 7W 条规则让 dnsmasq 负载变重。
 不过，在我的 RT-AC66U 之上，看起来完全没有影响, 看 Youtube, CPU 基本上小于 4%, 内存稳定在 10M 左右, 没什么瓶颈，就是不知道 dnsmasq 支持的条数是否存在上限 ...
 
-# 感谢
+## 感谢
 本文受到了大量网友文章的启发，并综合了各种信息，加以整理而成，无法一一感谢，仅列取最近部分的一些连接。
 
 [使用 Asus Merlin 实现路由器翻墙](https://github.com/onlyice/asus-merlin-cross-the-gfw/blob/master/README.md)
