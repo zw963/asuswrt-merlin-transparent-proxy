@@ -1,0 +1,13 @@
+#!/bin/sh
+
+
+target='route/opt/etc/dnsmasq.d/'
+
+mkdir -p $target
+
+# -O 参数，确保目标文件总是被覆盖。
+wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O $target/accelerated-domains.china.conf
+# wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf -O $target/bogus-nxdomain.china.conf
+# wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf -O $target/google.china.conf
+sed -r 's#server=(.*)114.114.114.114#ipset=\1FREEWEB#' $target/accelerated-domains.china.conf > $target/accelerated-domains-ipset.china.conf
+sed -i "s|^\(server.*\)/[^/]*$|\1/#|" $target/accelerated-domains.china.conf
