@@ -56,5 +56,7 @@ replace_string CHINADNS_PORT 5356 /opt/etc/dnsmasq.d/foreign_domains.conf
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 定时检测所有服务是否正常运行。
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
+# 重启 dnsmasq 服务器。
+dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 # 重启, 如果遇到问题，拔下 U 盘，再次重启后，再插上 U 盘，修复错误。
-reboot
+# reboot
