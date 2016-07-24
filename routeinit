@@ -43,7 +43,7 @@ opkg install shadowsocks-libev chinadns iptables ipset4
 # ---------------------------------------------------
 
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
-replace_string '"local_address".*' '"local_address":'$target /opt/etc/shadowsocks.json
+replace_regex '"local_address".*' '"local_address":'$targetip /opt/etc/shadowsocks.json
 # 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
 ss_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
 ss_local_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')

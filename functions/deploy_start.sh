@@ -22,7 +22,15 @@ function replace_escape () {
 }
 
 function replace_string () {
-    local regexp="\b$(echo "$1" |regexp_escape)"
+    local regexp="$(echo "$1" |regexp_escape)"
+    local replace="$(echo "$2"|replace_escape)"
+    local config_file=$3
+
+    sed -i -e "s/$regexp/$replace/" $config_file
+}
+
+function replace_regex () {
+    local regexp=$1
     local replace="$(echo "$2"|replace_escape)"
     local config_file=$3
 
