@@ -29,9 +29,10 @@ Billy.Zheng 2016/07/24
 登陆路由器 => 系统管理 => 系统设置 =>  Enable SSH 选择 `LAN+WAN`。
 登陆路由器 => 系统管理 => 系统设置 =>  SSH Authentication key, 加入你的 public key, 请自行度娘解决。
 
-应用本页面设置，等待结束后, 务必重新启动路由器。
+应用本页面设置，等待提示完成后, 然后务必重新启动路由器。
+等待重新启动再次进入路由器本页面，确保 `Format JFFS partition at next boot` 已经恢复成 `否`.
 
-重启后，尝试访问路由器： (假设 192.168.1.1 是你的路由 IP)
+假设 192.168.1.1 是你的路由 IP, 尝试使用客户端的 ssh 工具登陆路由器。(Windows 下如何做，请自行度娘解决)
 
 ```sh
 $ ssh admin@192.168.1.1
@@ -99,13 +100,13 @@ $ touch shadowsocks.json
 请尽量采用 public key 免密码方式通过访问你的路由器, 否则这个脚本会停下来多次让你输入 ssh 密码，不胜其烦。
 即：网页中，SSH Authentication key 部分加入你的 public key, 具体使用请自行度娘解决。
 
-当然，如果你不放心，完全可以选择照着[部署脚本](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/routeinit)逐条自行复制粘帖即可。
+当然，如果你不放心，完全可以选择照着[部署脚本](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss+dnsmasq+chinadns)逐条自行复制粘帖即可。
 相信我，部署脚本真的很简单，而且添加了大量的注释，配合 route 目录下的文件，看看就应该懂。
 
 假设我的路由器 ip 地址是 192.168.1.1, 并且开放了 22 的 ssh 端口, 则运行以下命令即可。
 
 ```ssh 
-./routeinit admin@192.168.1.1
+./ss+dnsmasq+chinadns admin@192.168.1.1
 ```
 
 脚本如果如果未出错，执行完后，路由器会重启, 重启后，稍等一分钟左右，尝试去体验下自由世界的乐趣吧。
