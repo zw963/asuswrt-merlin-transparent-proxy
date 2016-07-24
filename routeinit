@@ -9,8 +9,8 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
     exit
 fi
 
-# 生成 dnsmasq 需要的国内域名白名单列表。
-# ./generate_dns
+# 在本地生成 dnsmasq 需要的国内域名白名单列表。
+./generate_dns
 
 # 部署开始，这里首先会将 route 目录下的所有文件同步到路由器。
 deploy_start
