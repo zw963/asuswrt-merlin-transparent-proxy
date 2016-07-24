@@ -32,6 +32,7 @@ HERE
 
     preinstall=$'\n'$preinstall$'\n'"
 export target=$target
+export targetip=$(echo $target |cut -d'@' -f2)
 set -ue
 "
     deploy_script="$preinstall$(cat $0 |sed -e "1,/^$FUNCNAME/d")"
