@@ -46,7 +46,7 @@ set -ue
     deploy_script="$preinstall$(cat $0 |sed -e "1,/^$FUNCNAME/d")"
     
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
-        set -u
+        set -ue
         ssh $target 'opkg install bash'
         ssh $target /opt/bin/bash <<< "$deploy_script"
         scp -r route/* $target:/
