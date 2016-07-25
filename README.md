@@ -166,4 +166,4 @@ dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，�
 
 ## 其他
 
-[使用华硕 merlin 假设离线下载服务器](https://github.com/zw963/asuswrt-merlin-offline-download)
+[使用华硕 merlin 架设离线下载服务器](https://github.com/zw963/asuswrt-merlin-offline-download)
