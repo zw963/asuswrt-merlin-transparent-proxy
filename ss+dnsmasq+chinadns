@@ -25,7 +25,7 @@ deploy_start
 # entware-setup.sh; opkg update && opkg upgrade
 
 #  可选的安装一些有用的工具，编辑器, 离线下载等等.
-# opkg install grep nano findutils-locate wget aria2 sed
+# opkg install grep nano findutils-locate wget aria2 sed bind-dig
 
 # ssh 登陆路由器时，添加了一些别名，请自行查看。
 # add_service post-mount 'cp /opt/etc/profile /root/.profile'
