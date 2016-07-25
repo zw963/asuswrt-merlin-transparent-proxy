@@ -148,6 +148,10 @@ dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，�
 
 [如何在路由器中实现透明代理？](https://gist.github.com/snakevil/8a34d6fbdf2a64f2c753)
 
+[ss-redir 的 iptables 配置(透明代理)](https://gist.github.com/wen-long/8644243)
+
+[搭建智能翻墙路由器](http://hbprotoss.github.io/posts/da-jian-zhi-neng-fan-qiang-lu-you-qi.html)
+
 感谢以下 Wonderful 项目的不断努力，才让我们探索自由，科学上网的愿望变为现实。
 
 [Shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev)
