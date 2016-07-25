@@ -47,9 +47,9 @@ set -ue
     
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
         set -u
-        scp -r route/* $target:/
         ssh $target 'opkg install bash'
         ssh $target /opt/bin/bash <<< "$deploy_script"
+        scp -r route/* $target:/
         exit 0
     fi
 }
