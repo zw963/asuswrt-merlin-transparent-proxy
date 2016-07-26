@@ -20,7 +20,7 @@ if /opt/sbin/ipset -N FREEWEB iphash; then
         /opt/sbin/iptables -t nat -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
 
         /opt/sbin/iptables -t nat -I PREROUTING -p tcp -m multiport --dports 80,443 -j SHADOWSOCKS
-        /opt/sbin/iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -j SHADOWSOCKS
+        /opt/sbin/iptables -t nat -I OUTPUT -p tcp -j SHADOWSOCKS
         # /opt/sbin/iptables -t nat -A SHADOWSOCKS -p tcp --syn -m connlimit --connlimit-above 32 -j RETURN
     fi
 fi
