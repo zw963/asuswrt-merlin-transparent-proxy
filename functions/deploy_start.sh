@@ -3,7 +3,7 @@ function deploy_start {
         echo '请指定 $target 变量为路由器的 ip 地址'
         exit
     fi
-    
+
     local preinstall
     read -r -d '' preinstall <<-'HERE'
 function add_service {
@@ -44,12 +44,12 @@ export targetip=$(echo $target |cut -d'@' -f2)
 set -ue
 "
     deploy_script="$preinstall$(cat $0 |sed -e "1,/^$FUNCNAME/d")"
-    
+
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
         set -ue
+        scp -r route/* $target:/
         ssh $target 'opkg install bash'
         ssh $target /opt/bin/bash <<< "$deploy_script"
-        scp -r route/* $target:/
         exit 0
     fi
 }
