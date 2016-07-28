@@ -1,0 +1,3 @@
+#/bin/sh
+
+dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async

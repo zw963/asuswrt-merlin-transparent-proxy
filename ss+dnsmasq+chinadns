@@ -60,6 +60,9 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 
 # 定时检测所有服务是否正常运行。
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
+# 每一小时重启下 dnsmasq, 说实话，这个不够稳定。
+chmod +x /opt/etc/restart_dnsmasq
+add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/jffs/scripts/services-start"'
 
 # 检测 dnsmasq 脚本并重启 dnsmasq 服务器。
 # 注意：如果 dnsmasq 修改错误，会造成 DHCP 出错，客户端无法自动获取 IP 地址。
