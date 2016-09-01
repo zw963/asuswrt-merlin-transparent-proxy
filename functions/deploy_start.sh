@@ -10,7 +10,7 @@ function add_service {
     [ -e /jffs/scripts/$1 ] || echo '#!/bin/sh' > /jffs/scripts/$1
     chmod +x /jffs/scripts/$1
     fgrep -qs -e "$2" /jffs/scripts/$1 || echo "$2" >> /jffs/scripts/$1
-    /jffs/scripts/$1
+    # /jffs/scripts/$1
 }
 
 function regexp_escape () {
