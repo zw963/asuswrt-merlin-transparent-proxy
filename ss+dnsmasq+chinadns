@@ -69,4 +69,5 @@ add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/jffs/scripts/s
 # 遇到类似问题，首先拔下 U 盘，再次重启后，再插上 U 盘，尝试修复错误。
 dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 # 重启
+echo 'Rebooting, please wait ...'
 reboot
