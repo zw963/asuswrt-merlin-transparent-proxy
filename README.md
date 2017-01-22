@@ -88,7 +88,7 @@ $ touch shadowsocks.json
   "local_port": 1080,
   "password": "yours_password",
   "timeout":600,
-  "method":"aes-128-cfb"
+  "method":"rc4-md5"
 }
 ```
 

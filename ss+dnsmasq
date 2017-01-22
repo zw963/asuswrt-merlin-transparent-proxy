@@ -31,7 +31,7 @@ echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' > /jffs/configs/dnsmasq.conf.add
 chmod +x /opt/etc/iptables.sh
 add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
 
-# 安装 shadowsocks-libev + chinadns + iptables + ipset4
+# 安装 shadowsocks-libev + iptables + ipset4
 opkg install shadowsocks-libev iptables ipset4
 
 # ----------------------------------------------------
@@ -48,9 +48,6 @@ ss_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut 
 ss_local_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
 replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables.sh
 replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables.sh
-
-# 修改 chinadns 的 port 为 5356, 将 ss-tunnel 作为 chinadns 的上游服务器, 用来转发 DNS.
-# replace_string 5353 '5356 -s 114.114.114.114,127.0.0.1:1082,8.8.4.4' /opt/etc/init.d/S56chinadns
 
 # 将 chinadns 作为 dnsmasq 的上游服务器。
 replace_string CHINADNS_PORT 1082 /opt/etc/dnsmasq.d/foreign_domains.conf
