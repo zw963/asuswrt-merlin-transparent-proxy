@@ -10,10 +10,8 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
 fi
 
 # 在本地生成 dnsmasq 需要的国内域名白名单列表。
-./generate_dns
-
-# 部署开始，这里首先会将 route 目录下的所有文件同步到路由器。
-deploy_start
+# 然后运行 deploy_start 开始部署，这里首先会将 route 目录下的所有文件同步到路由器。
+./generate_dns && deploy_start
 
 # ----------------------------------------------------
 #
@@ -31,8 +29,8 @@ echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' > /jffs/configs/dnsmasq.conf.add
 chmod +x /opt/etc/iptables.sh
 add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
 
-# 安装 shadowsocks-libev + chinadns + iptables + ipset4
-opkg install shadowsocks-libev chinadns iptables ipset4
+# 安装 shadowsocks-libev + chinadns + iptables + ipset4 + grep
+opkg install shadowsocks-libev chinadns iptables ipset4 grep
 
 # ----------------------------------------------------
 #
