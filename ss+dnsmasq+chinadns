@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 source ./functions/deploy_start.sh
 
