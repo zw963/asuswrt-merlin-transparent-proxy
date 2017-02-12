@@ -4,14 +4,14 @@ Billy.Zheng 2016/07/24
 
 本文基于网络上大量资料整理，恕在此不一一列举，没有大量网友的无私分享，就不会有这个文章。
 
-本文是基于华硕(ASUS) RT-AC66U MIPS 架构的路由器, 同样适用于 ARM 架构的 RT-AC68U 及更高级版本。
+本文是基于华硕(ASUS) RT-AC66U MIPS 架构的路由器, 应该无需任何修改也适用于 ARM 架构的 RT-AC68U 及更高级版本。
 本教程使用的 asuswrt-merlin 版本为 Firmware:380.59，请不要低于这个版本, 
 
 本文章的部署策略稍作修改，应该也适用于 OpenWRT 及其他系统, 因为思路是一样的。
 
 警告:
 
-1. 本文完全基于命令行操作，无任何 GUI 支持, 你需要一定的 CLI 操作能力，以及配置 SSH 登陆的能力 (见下述)
+1. 本文完全基于命令行操作，无任何 GUI 支持, 你需要一定的 CLI 操作能力，以及配置 SSH 自动登陆的能力 (见下述)
 2. 请刷官方版的 asuswrt-merlin, 版本不早于 Firmware:380.59，否则 dnsmasq 可能无法支持 ipset, 你需要自己度娘搞定。
    并且开启远程 SSH 登陆。
 3. 自动安装脚本需要 ssh, scp 命令支持，这在 Linux 下完全不是问题，如果是 Windows 下，请参考一键部署脚本自行解决。
@@ -78,38 +78,40 @@ $ cd ~/asuswrt-merlin-transparent-proxy/route/opt/etc/
 $ touch shadowsocks.json
 ```
 
-内容示例如下, 具体含义请自行度娘解决。
+然后使用编辑器打开 shadowsocks.json, 内容示例如下, 具体含义请自行度娘解决。
 
 ```json
 {
-  "server":"123.123.123.123",
-  "server_port": 12345,
-  "local_address":"192.168.1.1",
-  "local_port": 1080,
-  "password": "yours_password",
-  "timeout":600,
-  "method":"rc4-md5"
+  "server":"123.123.123.123",     // 这是你国外服务器地址(它应该运行一个 ss server)
+  "server_port": 12345,           // ss-server 监听的端口
+  "local_address":"192.168.1.1",  // 确保这个地址设为你的路由器 ip 地址
+  "local_port": 1080,             // 无需更改
+  "password": "yours_password",   // ss-server 上设定的密码.
+  "timeout":600,                  // 不用改
+  "method":"rc4-md5"              // ss-server 上设定的加密方式.
 }
 ```
 
-注意：确保 local_address 设定为你的路由器 ip 地址。
 创建 ss 配置文件完毕后，进入下一步。
 
 ### 运行一键部署脚本进行部署. 
 
-请尽量采用 public key 免密码方式通过访问你的路由器, 否则这个脚本会停下来多次让你输入 ssh 密码，不胜其烦。
-即：网页中，SSH Authentication key 部分加入你的 public key, 具体使用请自行度娘解决。
+此时，你应该已经可以自动 ssh 登陆到路由器中，可以直接运行部署脚本：
 
-当然，如果你不放心，完全可以选择照着[部署脚本](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss+dnsmasq)逐条自行复制粘帖即可。
-相信我，部署脚本真的很简单，而且添加了大量的注释，配合 route 目录下的文件，看看应该可以读懂。
 
 假设我的路由器 ip 地址是 192.168.1.1, 并且开放了 22 的 ssh 端口, 则运行以下命令即可。
 
-```ssh 
-./ss+dnsmasq admin@192.168.1.1
+```sh
+$ ./ss+dnsmasq admin@192.168.1.1
 ```
 
+有两个部署脚本可用，一个使用了 chinadns, 一个没用, 建议直接使用 `ss+dnsmasq` 进行部署，跳过 chinadns,
+经过一段时间的测试，感觉不用 chinadns 速度更快一些，如果不行，再使用 `ss+dnsmasq+chinadns`　
+
 脚本如果如果未出错，执行完后，路由器会重启, 重启后，稍等一分钟左右，尝试去体验下自由世界的乐趣吧。
+
+如果你不放心，完全可以选择照着[部署脚本](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss+dnsmasq)中的命令,
+逐条自行复制粘帖到 __路由器__ 的命令行下执行，部署脚本中添加了一些注释，配合 route 目录下的文件，看看应该可以读懂。
 
 警告: __如果重启后出现任何部署问题，请拔掉 U 盘, 再重新启动，待启动正常后，再插入 U 盘，修复问题后再重启即可。
 如果还不行, 只能初始化路由器为出厂设置. 具体操作为: 首先关闭路由开关, 然后按下蓝色网线口旁边的那个小洞中的初始化按钮,
@@ -124,6 +126,7 @@ $ touch shadowsocks.json
 4. 使用 accelerated-domains.china.conf 进行批量替换，生成和白名单条目一一对应的 accelerated-domains-ipset.china.conf 文件, 
 5. 执行 DNS 查询时如果发现域名在这个名单中，   dnsmasq 会将访问过的这些国内网站域名对应的 IP 加入一个 ipset, 我们这里名字叫做 FREEWEB.
 6. 使用 iptables 策略，如果访问的 ip 属于 FREEWEB 这个 ipset(国内域名解析出来的IP), 直接放行，否则，将流量转发到 ss-redir.(1080端口)
+
 
 一些更加具体的设定问题，请查看这个 issue 中的讨论. https://github.com/onlyice/asus-merlin-cross-the-gfw/issues/5#issuecomment-234708422
 
