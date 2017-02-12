@@ -92,8 +92,7 @@ $ touch shadowsocks.json
 }
 ```
 
-注意：确保 local_address 设定为你的路由器 ip 地址。
-创建 ss 配置文件完毕后，进入下一步。
+注意：确保 local_address 设定为你的路由器 ip 地址。创建 ss 配置文件完毕后，进入下一步。
 
 ### 运行一键部署脚本进行部署. 
 
@@ -108,6 +107,8 @@ $ touch shadowsocks.json
 ```ssh 
 ./ss+dnsmasq+chinadns admin@192.168.1.1
 ```
+
+注意： __MacOS 自带的 `sed` 无法识别 `-r` 选项，请额外运行 `brew install gnu-sed` 后，替换 `generate_dns` 脚本内的 `sed` 命令为 `gsed`__
 
 脚本如果如果未出错，执行完后，路由器会重启, 重启后，稍等一分钟左右，尝试去体验下自由世界的乐趣吧。
 
