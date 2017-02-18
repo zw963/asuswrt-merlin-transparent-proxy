@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# 使用 Asus Merlin 提供的 Custom config files 能力，为 dnsmasq.conf 增加配置.
+if [ -d /opt/etc/dnsmasq.d ]; then
+    # 为默认的 /etc/dnsmasq.conf 新增配置.
+    echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
+    # 检测语法, 并重启 dnsmasq.conf
+    dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
+fi

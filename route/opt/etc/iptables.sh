@@ -1,23 +1,19 @@
 #!/bin/sh
 
-# asuswrt-merlin 有可能清空 SHADOWSOCKS 表。
-# IF 条件确保只有在这个表被清空后，才重新执行 iptables.
-
 # 添加 AC87U 的 ipset protocal version 6 的 iptables/ipset 支持.
 # See Following issue for detail:
 # https://github.com/zw963/asuswrt-merlin-transparent-proxy/issues/4
 # https://github.com/RMerl/asuswrt-merlin/issues/1062
-ipset_protocal_version=$(ipset version |grep 'version:' |grep -o '[0-9]$')
+
+ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 if [ "$ipset_protocal_version" == 6 ]; then
-    ipset='/usr/sbin/ipset'
     iptables='/usr/sbin/iptables'
     insmod ip_set
     insmod ip_set_hash_net
     insmod ip_set_hash_ip
     insmod xt_set
 else
-    ipset='/opt/sbin/ipset'
     iptables='/opt/sbin/iptables'
     insmod ip_set
     insmod ip_set_nethash
@@ -25,8 +21,9 @@ else
     insmod ipt_set
 fi
 
+# IF 条件确保只有在这个表被清空后，才重新执行 iptables.
 if $iptables -t nat -N SHADOWSOCKS; then
-    $ipset -N FREEWEB iphash
+    ipset -N FREEWEB iphash
     $iptables -t nat -A SHADOWSOCKS -d 0.0.0.0/8 -j RETURN
     $iptables -t nat -A SHADOWSOCKS -d 10.0.0.0/8 -j RETURN
     $iptables -t nat -A SHADOWSOCKS -d 127.0.0.0/8 -j RETURN
@@ -50,4 +47,4 @@ if $iptables -t nat -N SHADOWSOCKS; then
 fi
 
 # 查看 ipset
-$ipset -L FREEWEB
+ipset -L FREEWEB
