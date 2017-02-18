@@ -33,29 +33,18 @@ echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' > /jffs/configs/dnsmasq.conf.add
 chmod +x /opt/etc/iptables.sh
 add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
 
-# 安装 shadowsocks-libev + chinadns + iptables + ipset4 + grep
-set -e
-opkg install shadowsocks-libev chinadns iptables ipset4 grep
-set +e
+# 添加 AC87U 的 ipset protocal version 6 的 iptables/ipset 支持.
+ipset_protocal_version=$(ipset version |grep 'version:' |grep -o '[0-9]$')
 
-# Load ipset modules, see issue #4
-if ipset -v | grep -i "v4" &>/dev/null; then
-    # old ipset
-    ipsetv=4
-    lsmod | grep "ipt_set" &>/dev/null ||
-        for module in ip_set ip_set_nethash ip_set_iphash ipt_set
-        do
-            insmod $module
-        done
+set -e
+if [ "$ipset_protocal_version" == 6 ]; then
+    # AC87U 无需安装新版的 iptables/ipset
+    opkg install shadowsocks-libev
 else
-    # new ipset
-    ipsetv=6
-    lsmod | grep "xt_set" &>/dev/null ||
-        for module in ip_set ip_set_hash_net ip_set_hash_ip xt_set
-        do
-            insmod $module
-        done
+    # AC66U, 需要额外安装新版的 iptables/ipset4
+    opkg install shadowsocks-libev iptables ipset4
 fi
+set +e
 
 # ----------------------------------------------------
 #
