@@ -12,14 +12,17 @@ ipset_protocal_version=$(ipset version |grep 'version:' |grep -o '[0-9]$')
 if [ "$ipset_protocal_version" == 6 ]; then
     ipset='/usr/sbin/ipset'
     iptables='/usr/sbin/iptables'
-    instmod ip_set
-    instmod ip_set_hash_net
-    instmod ip_set_hash_ip
-    instmod xt_set
+    insmod ip_set
+    insmod ip_set_hash_net
+    insmod ip_set_hash_ip
+    insmod xt_set
 else
     ipset='/opt/sbin/ipset'
     iptables='/opt/sbin/iptables'
-    instmod ip_set ip_set_nethash ip_set_iphash ipt_set
+    insmod ip_set
+    insmod ip_set_nethash
+    insmod ip_set_iphash
+    insmod ipt_set
 fi
 
 if $iptables -t nat -N SHADOWSOCKS; then
