@@ -43,7 +43,7 @@ export target=$target
 export targetip=$(echo $target |cut -d'@' -f2)
 set -ue
 "
-    deploy_script="$preinstall$(cat $0 |sed -e "1,/^$FUNCNAME/d")"
+    deploy_script="$preinstall$(cat $0 |sed -e "1,/^\s*$FUNCNAME/d")"
 
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
         set -ue

@@ -11,7 +11,11 @@ fi
 
 # 在本地生成 dnsmasq 需要的国内域名白名单列表。
 # 然后运行 deploy_start 开始部署，这里首先会将 route 目录下的所有文件同步到路由器。
-./generate_dns && deploy_start
+
+# 注意, deploy_start 必须单独一行.
+./generate_dns &&
+    deploy_start
+
 
 # ----------------------------------------------------
 #
