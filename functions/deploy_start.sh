@@ -8,13 +8,12 @@ function deploy_start {
 $export_hooks
 export target=$target
 export targetip=$(echo $target |cut -d'@' -f2)
-set -ue
 echo '***********************************************************'
 echo Remote deploy scripts is started !!
 echo '***********************************************************'
+set -ue
 "
-    local deploy_script="$preinstall
-$(cat $0 |sed -e "1,/^\s*$FUNCNAME/d")"
+    local deploy_script="$preinstall$(cat $0 |sed -e "1,/^\s*$FUNCNAME/d")"
 
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
         set -ue

@@ -10,83 +10,84 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
 fi
 
 # 在本地生成 dnsmasq 需要的国内域名白名单列表。
-./generate_dns &&
+if ./generate_dns; then
     deploy_start
 
-# 运行 deploy_start 会即将开始部署, 这里做了两件事情:
+    # 运行 deploy_start 会即将开始部署, 这里做了两件事情:
 
-# - 首先会将 route 目录下的所有文件同步到路由器。
-# - 定义了一些方便的 function, 用来方便的修改这些文件配置.
-# -  deploy_start 必须单独写在一行, 因为这行以下的脚本会在远程路由器上执行.
+    # - 首先会将 route 目录下的所有文件同步到路由器。
+    # - 定义了一些方便的 function, 用来方便的修改这些文件配置.
+    # -  deploy_start 必须单独写在一行, 因为这行以下的脚本会在远程路由器上执行.
 
-# ----------------------------------------------------
-#
-# 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
-#
-# ---------------------------------------------------
+    # ----------------------------------------------------
+    #
+    # 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
+    #
+    # ---------------------------------------------------
 
-# 初始化 entware. 建议手动执行。
-# entware-setup.sh; opkg update && opkg upgrade
+    # 初始化 entware. 建议手动执行。
+    # entware-setup.sh; opkg update && opkg upgrade
 
-# 如果不存在 ipset (例如 AC66U), 首先安装 ipset4
-which ipset &>/dev/null || opkg install ipset4
+    # 如果不存在 ipset (例如 AC66U), 首先安装 ipset4
+    which ipset &>/dev/null || opkg install ipset4
 
-# 添加 AC87U 的 ipset protocal version 6 的 iptables/ipset 支持.
-ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
+    # 添加 AC87U 的 ipset protocal version 6 的 iptables/ipset 支持.
+    ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
-set -e
-if [ "$ipset_protocal_version" == 6 ]; then
-    # AC87U 无需安装新版的 iptables/ipset
-    opkg install shadowsocks-libev
-else
-    # AC66U, 需要额外安装新版的 iptables
-    opkg install shadowsocks-libev iptables
+    set -e
+    if [ "$ipset_protocal_version" == 6 ]; then
+        # AC87U 无需安装新版的 iptables/ipset
+        opkg install shadowsocks-libev
+    else
+        # AC66U, 需要额外安装新版的 iptables
+        opkg install shadowsocks-libev iptables
+    fi
+    set +e
+
+    # asuswrt-merlin 有时候会清空 iptables 的 NAT 表, 因此让 iptables.sh 一分钟定时执行一次.
+    chmod +x /opt/etc/iptables.sh && add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
+
+    # 删除之前版本创建的脚本, 这个脚本会造成当拔下 U 盘时, 路由器无法正常使用 DHCP.
+    rm -f /jffs/configs/dnsmasq.conf.add
+
+    # 所有服务启动完之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
+    # 新的实现方式确保了即使拔掉 U 盘, 路由器会按照原本默认的方式正常上网.
+    chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dnsmasq'
+
+    # ----------------------------------------------------
+    #
+    # 下面执行一些脚本检查与替换。
+    #
+    # ---------------------------------------------------
+
+    # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
+    replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
+
+    # 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
+    ss_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
+    ss_local_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
+
+    replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables.sh
+    replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables.sh
+
+    # 将 chinadns 作为 dnsmasq 的上游 DNS 服务器
+    replace_string UPSTREAM_PORT 5356 /opt/etc/dnsmasq.d/foreign_domains.conf
+
+    # 修改 chinadns 的端口为 5356, 并将 ss-tunnel (端口 1082) 作为 dnsmasq 的上游 DNS 服务器,
+    # 用来转发 DNS 请求到 ss-server.
+    replace_string 5353 '5356 -s 114.114.114.114,127.0.0.1:1082,8.8.4.4' /opt/etc/init.d/S56chinadns
+
+    # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
+    replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
+
+    # 每隔 1 分钟检测下所有的服务是否运行.
+    add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
+
+    # 一小时重启一次 dnsmasq, 暂时注释掉.
+    # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
+
+    # 部署成功, 重启路由器
+    echo 'Deploy success! Rebooting, please wait ...'
+    echo 'If any error occur, Please unplug U disk and reboot again!'
+    reboot
 fi
-set +e
-
-# asuswrt-merlin 有时候会清空 iptables 的 NAT 表, 因此让 iptables.sh 一分钟定时执行一次.
-chmod +x /opt/etc/iptables.sh && add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
-
-# 删除之前版本创建的脚本, 这个脚本会造成当拔下 U 盘时, 路由器无法正常使用 DHCP.
-rm -f /jffs/configs/dnsmasq.conf.add
-
-# 所有服务启动完之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
-# 新的实现方式确保了即使拔掉 U 盘, 路由器会按照原本默认的方式正常上网.
-chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dnsmasq'
-
-# ----------------------------------------------------
-#
-# 下面执行一些脚本检查与替换。
-#
-# ---------------------------------------------------
-
-# 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
-replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
-
-# 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
-ss_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-ss_local_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
-
-replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables.sh
-replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables.sh
-
-# 将 chinadns 作为 dnsmasq 的上游 DNS 服务器
-replace_string UPSTREAM_PORT 5356 /opt/etc/dnsmasq.d/foreign_domains.conf
-
-# 修改 chinadns 的端口为 5356, 并将 ss-tunnel (端口 1082) 作为 dnsmasq 的上游 DNS 服务器,
-# 用来转发 DNS 请求到 ss-server.
-replace_string 5353 '5356 -s 114.114.114.114,127.0.0.1:1082,8.8.4.4' /opt/etc/init.d/S56chinadns
-
-# 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
-replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
-
-# 每隔 1 分钟检测下所有的服务是否运行.
-add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
-
-# 一小时重启一次 dnsmasq, 暂时注释掉.
-# chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
-
-# 部署成功, 重启路由器
-echo 'Deploy success! Rebooting, please wait ...'
-echo 'If any error occur, Please unplug U disk and reboot again!'
-reboot
