@@ -11,8 +11,9 @@ if ! which wget &>/dev/null; then
     exit
 fi
 
-wget -q -O $target/accelerated-domains.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf
 # wget -q -O $target/bogus-nxdomain.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf
 # wget -q -O $target/google.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
-sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' $target/accelerated-domains.china.conf > $target/accelerated-domains-ipset.china.conf
-sed -i "s|^\(server.*\)/[^/]*$|\1/#|" $target/accelerated-domains.china.conf
+
+wget -q -O - https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf |
+    sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |
+    sed "s|^\(server.*\)/[^/]*$|\1/#|" > $target/accelerated-domains-ipset.china.conf
