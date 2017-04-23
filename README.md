@@ -89,7 +89,7 @@ __请注意: 下面的步骤是在你的本地主机上操作, 而不是在你�
 $ git clone https://github.com/zw963/asuswrt-merlin-transparent-proxy ~/
 ```
 
-不会用 Git 的同学, 可以从 (这个地址)[https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master] 下载,
+不会用 Git 的同学, 可以从 [这个地址](https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master) 下载,
 并重命名为 transparent-proxy.zip, 如果你使用 mac 或 linux, 下面的命令就足够了.
 
 ```sh
