@@ -89,6 +89,37 @@ __请注意: 下面的步骤是在你的本地主机上操作, 而不是在你�
 $ git clone https://github.com/zw963/asuswrt-merlin-transparent-proxy ~/
 ```
 
+不会用 Git 的同学, 可以从 (这个地址)[https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master] 下载,
+并重命名为 transparent-proxy.zip, 如果你使用 mac 或 linux, 下面的命令就足够了.
+
+```sh
+$: wget https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master -O transparent-proxy.zip
+$: unzip transparent-proxy.zip
+
+Archive:  transparent-proxy.zip
+ee43fd6ad2aa2e890b7f792c309fa5e270442676
+   creating: asuswrt-merlin-transparent-proxy-master/
+  inflating: asuswrt-merlin-transparent-proxy-master/.gitignore  
+  inflating: asuswrt-merlin-transparent-proxy-master/LICENSE  
+  inflating: asuswrt-merlin-transparent-proxy-master/README.md  
+   creating: asuswrt-merlin-transparent-proxy-master/functions/
+  inflating: asuswrt-merlin-transparent-proxy-master/functions/deploy_start.sh  
+  inflating: asuswrt-merlin-transparent-proxy-master/generate_dns  
+   creating: asuswrt-merlin-transparent-proxy-master/route/
+   creating: asuswrt-merlin-transparent-proxy-master/route/opt/
+   creating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/
+   creating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/dnsmasq.d/
+ extracting: asuswrt-merlin-transparent-proxy-master/route/opt/etc/dnsmasq.d/foreign_domains.conf  
+   creating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/init.d/
+  inflating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/init.d/S22ss-tunnel  
+  inflating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/iptables.sh  
+  inflating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/patch_dnsmasq  
+  inflating: asuswrt-merlin-transparent-proxy-master/route/opt/etc/restart_dnsmasq  
+  inflating: asuswrt-merlin-transparent-proxy-master/ss+dnsmasq  
+  inflating: asuswrt-merlin-transparent-proxy-master/ss+dnsmasq+chinadns  
+
+```
+
 ### 新增你的 shadowsocks.json 配置脚本
 
 首先进入项目目录
