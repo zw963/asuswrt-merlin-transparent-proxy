@@ -90,7 +90,7 @@ $ git clone https://github.com/zw963/asuswrt-merlin-transparent-proxy ~/
 ```
 
 不会用 Git 的同学, 可以从 [这个地址](https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master) 下载,
-并重命名为 transparent-proxy.zip, 如果你使用 mac 或 linux, 下面的命令就足够了.
+如果下载文件不是 ??.zip 格式, 将其重命名为 transparent-proxy.zip, 如果你使用 mac 或 linux, 下面的命令就足够了.
 
 ```sh
 $: wget https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master -O transparent-proxy.zip
