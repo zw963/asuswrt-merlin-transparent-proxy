@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./functions/deploy_start.sh
+source ./functions/route_deploy_start.sh
 
 export target=$1
 
