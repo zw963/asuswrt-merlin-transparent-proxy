@@ -2,8 +2,6 @@
 
 Billy.Zheng 2016/07/24
 
-(2017/02/18 再次编辑)
-
 本文基于网络上大量资料整理，恕在此不一一列举，没有大量网友的无私分享，就不会有这个文章。
 
 本部署脚本原始基于华硕(ASUS) RT-AC66U MIPS 架构的路由器编写, 也在 RT-AC87U ARM 架构上实测成功.
@@ -256,5 +254,30 @@ dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，�
 [Entware-ng](https://github.com/Entware-ng/Entware-ng)
 
 ## 其他
+
+新增最新版(v3.0.6)的 shadowsocks-libev 服务器端部署脚本, 方便不会在服务器上配置 ss 的朋友.
+
+未充分测试, 但是应该在 Centos 7, 较新版本的 openSUSE 与 Ubuntu 16.04 下完美工作.
+这个版本的 shadowsocks-libev 依赖 mbedtls, Ubuntu 14.04 没有提供这个包, 因此不再考虑之列.
+
+操作步骤如下:
+
+1. 购买一台可以连接外网的 VPS.
+2. 确保可以 root 登录.
+3. 参照部署脚本中的注释, 修改 `你的密码` 为 ss-server 所需真实密码, 稍后路由器连接需要这个密码.
+4. 假设你的 VPS IP 地址是: 123.123.123.123, 运行: ``./ss-server_install root@123.123.123.123`` 等待完成.
+
+
+补充:
+
+基于你选择的服务商, 如果是 Centos 7 可能需要手动添加 ``epel`` 的 source 进来, 否则找不到 ``mbedtls-devel`` 这个包.
+
+```sh
+$: rpm -ivh http://download.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+```
+
+然后重新运行部署脚本.
+
+有问题, 提 issue, 会不定期解决.
 
 [使用华硕 merlin 架设离线下载服务器](https://github.com/zw963/asuswrt-merlin-offline-download)
