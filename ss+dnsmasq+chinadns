@@ -11,7 +11,7 @@ fi
 
 # 在本地生成 dnsmasq 需要的国内域名白名单列表。
 if ./generate_dns; then
-    deploy_start
+    route_deploy_start
 
     # 运行 deploy_start 会即将开始部署, 这里做了两件事情:
 

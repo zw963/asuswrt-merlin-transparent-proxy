@@ -1,4 +1,4 @@
-function deploy_start {
+function route_deploy_start {
     if [ -z "$target" ]; then
         echo "请指定你的路由器 IP 地址作为参数, 例如: ./$(basename $0) admin@192.168.1.1"
         exit
@@ -24,7 +24,7 @@ set -ue
     fi
 }
 
-export -f deploy_start
+export -f route_deploy_start
 
 function add_service {
     [ -e /jffs/scripts/$1 ] || echo '#!/bin/sh' > /jffs/scripts/$1
