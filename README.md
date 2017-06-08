@@ -32,7 +32,7 @@ Linux 下, 假设你的 U 盘驱动器设备为 /dev/sdd1
 
 __注意!! 以上操作需谨慎, 盘符一定搞对, 等价于 Window 下的格式化操作, 本文不对因用户不了解造成的任何数据丢失, 承担责任!__
 
-### 初始化 jffs.
+### 初始化 jffs. 
 将 U 盘插入到路由器 U 口上, 然后登陆路由器, 按照以下提示操作:
 
 1. 系统管理 => 系统设置
@@ -74,6 +74,8 @@ admin@RT-AC66U-20F0:/tmp/mnt/sda/asusware/etc# entware-setup.sh
 
 此时选择 1 即可, 等待 opkg 包管理安装完成后, `exit` 退出路由器.
 
+提示: 如果因为各种原因, 之后有任何步骤执行失败, 可以重复执行本步骤, 再次部署.
+
 
 ## 使用本脚本一键部署
 
@@ -84,7 +86,7 @@ __请注意: 下面的步骤是在你的本地主机上操作, 而不是在你�
 这里以克隆项目到你的 $HOME 下为例:
 
 ```sh
-$ git clone https://github.com/zw963/asuswrt-merlin-transparent-proxy ~/
+$ git clone git@github.com:zw963/asuswrt-merlin-transparent-proxy.git ~/asuswrt-merlin-transparent-proxy-master
 ```
 
 不会用 Git 的同学, 可以从 [这个地址](https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master) 下载,
@@ -123,7 +125,7 @@ ee43fd6ad2aa2e890b7f792c309fa5e270442676
 首先进入项目目录
 
 ```sh
-$ cd ~/asuswrt-merlin-transparent-proxy
+$ cd ~/asuswrt-merlin-transparent-proxy-master
 ```
 
 创建连接到墙外的跳板服务器的 shadowsocks.json 脚本. (可能是自己的 VPS 或 第三方收费 VPN)
