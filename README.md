@@ -74,7 +74,7 @@ admin@RT-AC66U-20F0:/tmp/mnt/sda/asusware/etc# entware-setup.sh
 
 此时选择 1 即可, 等待 opkg 包管理安装完成后, `exit` 退出路由器.
 
-提示: 如果因为各种原因, 之后有任何步骤执行失败, 可以重复执行本步骤, 再次部署.
+提示: __如果因为各种原因, 之后有任何步骤执行失败, 可以重复执行本步骤, 再次部署, 注意每次初始化后, 需要手动点击重启路由器.__
 
 
 ## 使用本脚本一键部署
@@ -89,11 +89,11 @@ __请注意: 下面的步骤是在你的本地主机上操作, 而不是在你�
 $ git clone git@github.com:zw963/asuswrt-merlin-transparent-proxy.git ~/asuswrt-merlin-transparent-proxy-master
 ```
 
-不会用 Git 的同学, 可以从 [这个地址](https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master) 下载,
-如果下载文件不是 ??.zip 格式, 将其重命名为 transparent-proxy.zip, 如果你使用 mac 或 linux, 下面的命令就足够了.
+不会用 Git 的同学, 可以从 [这个地址](https://github.com/zw963/asuswrt-merlin-transparent-proxy/archive/master.zip) 下载,
+如果你使用 mac 或 linux, 使用下面的 curl 命令就足够了.
 
 ```sh
-$: wget https://codeload.github.com/zw963/asuswrt-merlin-transparent-proxy/zip/master -O transparent-proxy.zip
+$: curl -L https://github.com/zw963/asuswrt-merlin-transparent-proxy/archive/master.zip > transparent-proxy.zip
 $: unzip transparent-proxy.zip
 
 Archive:  transparent-proxy.zip
