@@ -138,6 +138,7 @@ $ touch route/opt/etc/shadowsocks.json
 如何在自己的 VPS 上部署 SS, 请参阅相关文章, 在此不再赘述.
 
 ```json
+// 这只是一个例子, 如果你要复制修改, 麻烦先手动删除所有 // 开头的注释!
 {
   "server":"123.123.123.123",     // 这是你国外服务器地址(服务器上应该运行一个 shadowsocks server)
   "server_port": 12345,           // ss-server 监听的端口
