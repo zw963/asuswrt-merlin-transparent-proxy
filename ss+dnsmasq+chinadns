@@ -37,7 +37,7 @@ if ./generate_dns; then
     set -e
     if [ "$ipset_protocal_version" == 6 ]; then
         # AC87U 无需安装新版的 iptables/ipset
-        opkg install shadowsocks-libev
+        opkg install shadowsocks-libev chinadns
     else
         # AC66U, 需要额外安装新版的 iptables
         opkg install shadowsocks-libev iptables chinadns
