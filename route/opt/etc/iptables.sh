@@ -33,6 +33,8 @@ if $iptables -t nat -N SHADOWSOCKS; then
     $iptables -t nat -A SHADOWSOCKS -d 224.0.0.0/4 -j RETURN
     $iptables -t nat -A SHADOWSOCKS -d 240.0.0.0/4 -j RETURN
 
+    sh /opt/etc/iptables.china
+
     # 如果有很多服务器，并且所有目标服务器都是同样的端口, 用法如下
     # $iptables -t nat -A SHADOWSOCKS --dport 22334 -j RETURN
     $iptables -t nat -A SHADOWSOCKS -d SS_SERVER_IP -j RETURN
