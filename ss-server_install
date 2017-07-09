@@ -24,7 +24,7 @@ if ! which ss-server &>/dev/null; then
 * hard nofile 51200
 '
     for i in $limits; do
-        append_file "$i" /etc/security/limits.conf
+        append_file /etc/security/limits.conf "$i"
     done
 
     # fs.file-max = 51200
@@ -84,7 +84,7 @@ net.ipv4.tcp_mtu_probing=1
 net.ipv4.tcp_congestion_control=hybla
 '
     for i in $sysctl; do
-        append_file "$i" /etc/sysctl.conf
+        append_file /etc/sysctl.conf "$i"
     done
     sysctl -p
 

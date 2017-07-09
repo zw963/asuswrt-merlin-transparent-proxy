@@ -136,46 +136,53 @@ function wait () {
 }
 
 function append_file () {
-    local content file regexp
-    if [ "$#" == 2 ]; then
-        content=$1
-        file=$2
-    elif [ "$#" == 1 ]; then
-        # 从管道内读取.
-        content=$(cat /proc/$$/fd/0)
-        file=$1
-    fi
+    local content regexp file
+    file=$1
 
-    regexp="^\\s*$(echo "$content" |regexp_escape)\b"
+    if [ "$#" == 2 ]; then
+        content=$2
+    elif [ "$#" == 1 ]; then
+        content=$(cat /dev/stdin) # 从管道内读取所有内容.
+    fi
+    regexp=$(echo "$content" |regexp_escape)
+
+
     # unless expected config exist, otherwise append config to last line.
-    if ! grep -qs "$regexp" "$file"; then
-        echo -e "\n#= Add by ${_modifier-$USER} =#" >> "$file"
+    if ! grep "^\\s*${regexp}\\s*" "$file"; then
+        # echo -e "\n#= Add by ${_modifier-$USER} =#" >> "$file"
         echo "$content" >> "$file"
         echo "[0m[33mAppend \`$content' into $file[0m"
     fi
 }
 
 function prepend_file () {
-    local content file regexp
-    if [ "$#" == 2 ]; then
-        content=$1
-        file=$2
-    elif [ "$#" == 1 ]; then
-        # 从管道内读取.
-        content=$(cat /proc/$$/fd/0)
-        file=$1
-    fi
+    local content regexp file
+    file=$1
 
-    $sudo sed -i "1i#= Add by ${_modifier-$USER} =#\n$(echo $content|replace_escape)" "$file"
-    echo "[0m[33mPrepend \`$content' into $file[0m"
+    if [ "$#" == 2 ]; then
+        content=$2
+    elif [ "$#" == 1 ]; then
+        content=$(cat /dev/stdin) # 从管道内读取所有内容.
+    fi
+    regexp=$(echo "$content" |regexp_escape)
+    content_escaped=$(echo "$content" |replace_escape)
+
+    if ! grep "^\\s*${regexp}\\s*" "$file"; then
+        $sudo sed -i 1i"$content_escaped" "$file"
+        echo "[0m[33mPrepend \`$content' into $file[0m"
+    fi
 }
 
+# 转义一个字符串中的所有 grep 元字符.
 function regexp_escape () {
     sed -e 's/[]\/$*.^|[]/\\&/g'
 }
 
-function replace_escape () {
-    sed -e 's/[\/&]/\\&/g'
+# 这是支持 replace string 存在换行, 以及各种元字符的版本.
+# 详细信息,  读这个答案: https://stackoverflow.com/a/29613573/749774
+function replace_escape() {
+    IFS= read -d '' -r < <(sed -e ':a' -e '$!{N;ba' -e '}' -e 's/[&/\]/\\&/g; s/\n/\\&/g')
+    printf %s "${REPLY%$'\n'}"
 }
 
 function replace () {
@@ -308,13 +315,13 @@ function sshkeygen () {
     ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
 }
 
-function rc.local () {
-    local conf=/etc/rc.local
+# function rc.local () {
+#     local conf=/etc/rc.local
 
-    fgrep -qs "$*" $conf || echo "$*" >> $conf
-    chmod +x $conf
-    # $*
-}
+#     fgrep -qs "$*" $conf || echo "$*" >> $conf
+#     chmod +x $conf
+#     # $*
+# }
 
 function expose_port () {
     for port in "$@"; do
