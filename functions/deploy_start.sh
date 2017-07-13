@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function deploy_start {
     local dir
@@ -181,7 +181,7 @@ function regexp_escape () {
 # 这是支持 replace string 存在换行, 以及各种元字符的版本.
 # 详细信息,  读这个答案: https://stackoverflow.com/a/29613573/749774
 function replace_escape() {
-    IFS= read -d '' -r < <(sed -e ':a' -e '$!{N;ba' -e '}' -e 's/[&/\]/\\&/g; s/\n/\\&/g')
+    IFS= read -d '' -r <<< "$(sed -e ':a' -e '$!{N;ba' -e '}' -e 's/[&/\]/\\&/g; s/\n/\\&/g')"
     printf %s "${REPLY%$'\n'}"
 }
 
