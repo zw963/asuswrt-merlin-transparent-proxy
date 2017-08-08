@@ -13,7 +13,7 @@ echo Remote deploy scripts is started !!
 echo '***********************************************************'
 set -ue
 "
-    local deploy_script="$preinstall$(cat $0 |sed -e "1,/^\s*$FUNCNAME/d")"
+    local deploy_script="$preinstall$(cat $0 |awk "/^[[:space:]]*$FUNCNAME/,EOF" |tail -n +2)"
 
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
         set -ue
