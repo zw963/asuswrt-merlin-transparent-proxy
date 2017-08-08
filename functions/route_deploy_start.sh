@@ -49,7 +49,7 @@ function replace_string () {
     local replace="$(echo "$2" |replace_escape)"
     local config_file=$3
 
-    sed -i -e "s/$regexp/$replace/" "$config_file"
+    sed -i -e "s/$regexp/$replace/g" "$config_file"
 }
 
 function replace_regex () {
@@ -57,7 +57,7 @@ function replace_regex () {
     local replace="$(echo "$2" |replace_escape)"
     local config_file=$3
 
-    sed -i -e "s/$regexp/$replace/" "$config_file"
+    sed -i -e "s/$regexp/$replace/g" "$config_file"
 }
 
 function __export () {
