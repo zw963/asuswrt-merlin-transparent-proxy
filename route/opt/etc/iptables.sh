@@ -35,8 +35,9 @@ if $iptables -t nat -N SHADOWSOCKS; then
 
     sh /opt/etc/iptables.china
 
-    # 如果有很多服务器，并且所有目标服务器都是同样的端口, 用法如下
-    # $iptables -t nat -A SHADOWSOCKS --dport 22334 -j RETURN
+    # 如果有很多 ss-server，并且所有的 server 都是同样的端口 22334, 用法如下
+    # $iptables -t nat -A SHADOWSOCKS -p tcp --dport 22334 -j RETURN
+
     $iptables -t nat -A SHADOWSOCKS -d SS_SERVER_IP -j RETURN
 
     $iptables -t nat -A SHADOWSOCKS -m set --match-set FREEWEB dst -j RETURN
@@ -44,7 +45,6 @@ if $iptables -t nat -N SHADOWSOCKS; then
     $iptables -t nat -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
 
     $iptables -t nat -I PREROUTING -p tcp -m multiport --dports 80,443 -j SHADOWSOCKS
-    # $iptables -t nat -I OUTPUT -p tcp -j SHADOWSOCKS
     # $iptables -t nat -A SHADOWSOCKS -p tcp --syn -m connlimit --connlimit-above 32 -j RETURN
 fi
 
