@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function extract_remote_script {
+    awk "/^[[:space:]]*$*/,EOF" |tail -n +2
+}
+
 function deploy_start {
     local dir
 
@@ -22,7 +26,7 @@ function deploy_start {
         exit
     fi
 
-    local preinstall="$(cat $FUNCTION_PATH/$FUNCNAME.sh |sed -e "1,/^export -f $FUNCNAME/d")
+    local preinstall="$(cat $FUNCTION_PATH/$FUNCNAME.sh |extract_remote_script "export -f $FUNCNAME")
 $export_hooks
 export target=$target
 export targetip=$(echo $target |cut -d'@' -f2)
@@ -33,7 +37,7 @@ echo Remote deploy scripts is started !!
 echo '***********************************************************'
 set -ue
 "
-    local deploy_script="$preinstall$(cat $0 |sed -e "1,/^\s*$FUNCNAME/d")"
+    local deploy_script="$preinstall$(cat $0 |extract_remote_script $FUNCNAME)"
 
     if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
         set -u
