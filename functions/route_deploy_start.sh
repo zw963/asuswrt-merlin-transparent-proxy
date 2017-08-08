@@ -1,6 +1,6 @@
 function route_deploy_start {
-    if [ -z "$target" ]; then
-        echo "请指定你的路由器 IP 地址作为参数, 例如: ./$(basename $0) admin@192.168.1.1"
+    if ! [[ "$target" =~ [-_.[:alnum:]]+@[0-9.]+ ]]; then
+        echo "参数错误: \`$target', 示例: ./$(basename $0) admin@192.168.1.1"
         exit
     fi
 
