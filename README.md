@@ -9,9 +9,10 @@ Billy.Zheng 2016/07/24
 
 注意:
 
-1. 本文完全基于命令行操作，无任何 GUI 支持, 你需要具备一定的 CLI 操作能力，以及开启 SSH 自动登陆 (见下述)
-2. 请刷官方版的 [asuswrt-merlin](https://asuswrt.lostrealm.ca), 原始开发基于的版本为 Firmware:380.59, 请不要低于这个版本.
-3. 自动安装脚本需要 ssh 支持，如果你的操作主机是 Linux 或 Mac，应该完全没问题, 如果是 Windows，请百度自行解决。
+1. 本文的目的是为: 合理科学上网提供便利.
+2. 本文完全基于命令行操作，无任何 GUI 支持, 你需要具备一定的 CLI 操作能力，以及开启 SSH 自动登陆 (见下述)
+3. 请刷官方版的 [asuswrt-merlin](https://asuswrt.lostrealm.ca), 原始开发基于的版本为 Firmware:380.59, 请不要低于这个版本.
+4. 自动安装脚本需要 ssh 支持，如果你的操作主机是 Linux 或 Mac，应该完全没问题, 如果是 Windows，请百度自行解决。
 
 ## 目的
 使用目前最流行的白名单方式，通过维护一份国内网站域名列表[dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list),
@@ -146,7 +147,7 @@ $ touch route/opt/etc/shadowsocks.json
   "local_port": 1080,             // 无需更改
   "password": "yours_password",   // ss-server 上设定的密码.
   "timeout":600,                  // 不用改
-  "method":"rc4-md5"              // ss-server 上设定的加密方式.
+  "method":"rc4-md5"              // ss-server 上设定的加密方式, 建议: aes-256-cfb
 }
 ```
 
@@ -269,7 +270,6 @@ dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，�
 2. 确保可以 root 登录.
 3. 参照部署脚本中的注释, 修改 `你的密码` 为 ss-server 所需真实密码, 稍后路由器连接需要这个密码.
 4. 假设你的 VPS IP 地址是: 123.123.123.123, 运行: ``./ss-server_install root@123.123.123.123`` 等待完成.
-
 
 补充:
 
