@@ -43,7 +43,6 @@ if $iptables -t nat -N SHADOWSOCKS; then
     $iptables -t nat -A SHADOWSOCKS -m set --match-set FREEWEB dst -j RETURN
 
     $iptables -t nat -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
-    $iptables -t nat -A SHADOWSOCKS -p udp -j REDIRECT --to-ports SS_LOCAL_PORT
 
     $iptables -t nat -I PREROUTING -p tcp -m multiport --dports 80,443 -j SHADOWSOCKS
     # $iptables -t nat -A SHADOWSOCKS -p tcp --syn -m connlimit --connlimit-above 32 -j RETURN
