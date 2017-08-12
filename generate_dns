@@ -1,18 +1,19 @@
 #!/bin/bash
 
 
-target='route/opt/etc/dnsmasq.d/'
+target_dir='route/opt/etc/dnsmasq.d/'
 
-mkdir -p $target
+mkdir -p $target_dir
 
 if ! which curl &>/dev/null; then
     echo "Please install curl! e.g. in Ubuntu, run \`sudo apt-get install curl'"
     exit 1
 fi
 
-# wget -q -O $target/bogus-nxdomain.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf
-# wget -q -O $target/google.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
+# wget -q -O $target_dir/bogus-nxdomain.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/bogus-nxdomain.china.conf
+# wget -q -O $target_dir/google.china.conf https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
 
-curl https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf |
+curl https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -o $target_dir/accelerated-domains.china.conf
+cat $target_dir/accelerated-domains.china.conf |
     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |
-    sed "s|^\(server.*\)/[^/]*$|\1/#|" > $target/accelerated-domains-ipset.china.conf
+    sed "s|^\(server.*\)/[^/]*$|\1/#|" > $target_dir/accelerated-domains-ipset.china.conf
