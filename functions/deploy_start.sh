@@ -1,18 +1,6 @@
 #!/bin/bash
 
-function extract_remote_script {
-    awk "/^[[:space:]]*$*/,EOF" |tail -n +2
-}
-
-function deploy_start {
-    local dir
-
-    if [ "$*" ]; then
-        dir=$*
-    else
-        dir="$0_deploy"
-    fi
-
+function detect_target () {
     if [[ "$target" =~ [-_.[:alnum:]]+@.+ ]]; then
         target=${BASH_REMATCH[0]}
     elif [[ "$target" =~ [a-zA-Z0-9_.]+ ]]; then
@@ -25,6 +13,28 @@ function deploy_start {
         echo 'e.g. target=localhost or target=root@123.123.123.123'
         exit
     fi
+}
+
+function copy () {
+    detect_target
+
+    local local_file remote_file
+    local_file=$1
+    remote_file=$2
+
+    remote_dir=$(dirname $remote_file)
+
+
+    ssh $target mkdir -p $remote_dir
+    scp -r "$local_file" $target:$remote_file
+}
+
+function extract_remote_script {
+    awk "/^[[:space:]]*$*/,EOF" |tail -n +2
+}
+
+function deploy_start {
+    detect_target
 
     local preinstall="$(cat $FUNCTION_PATH/$FUNCNAME.sh |extract_remote_script "export -f $FUNCNAME")
 $export_hooks
@@ -39,32 +49,9 @@ set -ue
 "
     local deploy_script="$preinstall$(cat $0 |extract_remote_script $FUNCNAME)"
 
-    if ! [ "$SSH_CLIENT$SSH_TTY" ]; then
+    if [ -z "$SSH_CLIENT$SSH_TTY" ]; then
         set -u
-
-        if [ "$target" == localhost ]; then
-            # 本地部署
-            command='bash -c'
-            if [ $EUID == 0 ]; then
-                sudo=''
-            else
-                sudo='sudo'
-            fi
-            target=''
-        else
-            # 远程部署使用 ssh 远程执行。
-            command="ssh $target"
-            target=$target:
-            sudo=''
-        fi
-
-        # 仅当目录中存在文件时, 才拷贝文件。
-        [ -d "$dir" ] &&
-            find "$dir/" -type f ! -name '.gitkeep' &>/dev/null &&
-            $sudo rsync --recursive --copy-links --perms --times --update \
-                  --verbose --human-readable -P \
-                  --exclude '.*.*~' --rsh=ssh "$dir/" $target/
-        $command "$deploy_script"
+        ssh $target "$deploy_script"
         exit 0
     fi
 }
@@ -99,7 +86,8 @@ function daemon () {
     local name=$1
     local command=$2
 
-    useradd $name -s /sbin/nologin
+    getent passwd $name || useradd $name -s /sbin/nologin
+
     cat <<HEREDOC > /etc/systemd/system/$name.service
      [Unit]
      Description=$name Service
@@ -109,6 +97,7 @@ function daemon () {
      Type=simple
      User=$name
      ExecStart=$command
+     ExecReload=/bin/kill -USR1 \$MAINPID
      Restart=on-abort
      LimitNOFILE=51200
      LimitCORE=infinity
@@ -121,6 +110,7 @@ HEREDOC
     systemctl start $name
     systemctl enable $name
     systemctl status $name
+
     # 停止和关闭的命令如下:
     # systemctl stop shadowsocks
     # systemctl disable shadowsocks
@@ -148,11 +138,18 @@ function append_file () {
     elif [ "$#" == 1 ]; then
         content=$(cat /dev/stdin) # 从管道内读取所有内容.
     fi
-    regexp=$(echo "$content" |regexp_escape)
+    local line_number=$(echo "$content" |wc -l)
 
+    if [ "$line_number" == "1" ]; then
+        regexp=$(echo "$content" |regexp_escape)
+        set +e
+        grep "^\\s*${regexp}\\s*" "$file"
+    else
+        set +e
+        match_multiline "$content" "$(cat $file)"
+    fi
 
-    # unless expected config exist, otherwise append config to last line.
-    if ! grep "^\\s*${regexp}\\s*" "$file"; then
+    if ! [ $? == 0 ]; then
         # echo -e "\n#= Add by ${_modifier-$USER} =#" >> "$file"
         echo "$content" >> "$file"
         echo "[0m[33mAppend \`$content' into $file[0m"
@@ -168,10 +165,19 @@ function prepend_file () {
     elif [ "$#" == 1 ]; then
         content=$(cat /dev/stdin) # 从管道内读取所有内容.
     fi
-    regexp=$(echo "$content" |regexp_escape)
-    content_escaped=$(echo "$content" |replace_escape)
+    local line_number=$(echo "$content" |wc -l)
 
-    if ! grep "^\\s*${regexp}\\s*" "$file"; then
+    if [ "$line_number" == "1" ]; then
+        regexp=$(echo "$content" |regexp_escape)
+        set +e
+        grep "^\\s*${regexp}\\s*" "$file"
+    else
+        set +e
+        match_multiline "$content" "$(cat $file)"
+    fi
+
+    if ! [ $? == 0 ]; then
+        content_escaped=$(echo "$content" |replace_escape)
         $sudo sed -i 1i"$content_escaped" "$file"
         echo "[0m[33mPrepend \`$content' into $file[0m"
     fi
@@ -187,6 +193,19 @@ function regexp_escape () {
 function replace_escape() {
     IFS= read -d '' -r <<< "$(sed -e ':a' -e '$!{N;ba' -e '}' -e 's/[&/\]/\\&/g; s/\n/\\&/g')"
     printf %s "${REPLY%$'\n'}"
+}
+
+function match_multiline() {
+    local regex content
+    # 将 regexp 的换行符 换为一个不可见字符.
+    # 注意: 这里 $1 已经是一个 regex
+    regex=$(echo "$1" |tr '\n' '\a')
+
+    # 文本内容也将 换行符 换为一个不可见字符.
+    content=$(echo "$2"|tr '\n' '\a')
+
+    # 多行匹配, 选择文本匹配, 而不是正则.
+    echo "$content" |fgrep "$regex"
 }
 
 function replace () {
@@ -288,7 +307,7 @@ function wget () {
 }
 function download_and_extract () {
     local ext=$( basename "$*" |rev|cut -d'.' -f1|rev)
-    local wget='wget --no-check-certificate -c'
+    local wget='command wget --no-check-certificate -c'
     case $ext in
         gz)
             $wget -O - "$*" |tar zxvf -
@@ -344,7 +363,7 @@ function expose_port () {
 }
 
 function package () {
-    local install zlib pcre apache2_utils
+    local install installed
     local compile_tools='gcc autoconf automake make libtool bzip2 unzip patch wget curl perl'
     local basic_tools='mlocate git tree'
 
@@ -384,7 +403,7 @@ function package () {
                     installed="$installed $compile_tools libssl-dev g++ xz-utils"
                     ;;
                 basic-tools)
-                    installed="$installed $basic_tools"
+                    basic_tools="$basic_tools"
                     ;;
                 *)
                     installed="$installed $i"
@@ -395,7 +414,7 @@ function package () {
                     installed="$installed $compile_tools openssl-devel gcc-c++ xz"
                     ;;
                 basic-tools)
-                    installed="$installed $basic_tools yum-cron yum-utils"
+                    basic_tools="$basic_tools yum-cron epel-release yum-utils"
                     ;;
                 apache2-utils)
                     installed="$installed httpd-tools"
@@ -406,10 +425,10 @@ function package () {
         elif grep -qs openSUSE /etc/issue; then
             case "$i" in
                 compile-tools)
-                    installed="$installed $compile_tools openssl-devel gcc-c++ xz"
+                    installed="$installed $compile_tools libopenssl-devel gcc-c++ xz"
                     ;;
                 basic-tools)
-                    installed="$installed $basic_tools"
+                    basic_tools="$basic_tools"
                     ;;
                 *)
                     installed="$installed $i"
@@ -417,7 +436,13 @@ function package () {
         fi
     done
 
-    $install $installed
+    for i in $basic_tools; do
+        $install $i
+    done
+
+    for i in $installed; do
+        $install $i
+    done
 }
 
 # only support define a bash variable, bash array variable not supported.
