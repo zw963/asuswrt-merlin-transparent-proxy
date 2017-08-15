@@ -5,5 +5,5 @@
   "local_port": 1080,
   "password": "mypassword",
   "timeout":600,
-  "method":"rc4-md5"
+  "method":"aes-256-cfb"
 }

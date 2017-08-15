@@ -153,7 +153,7 @@ $ touch route/opt/etc/shadowsocks.json
   "local_port": 1080,             // 无需更改
   "password": "yours_password",   // ss-server 上设定的密码.
   "timeout":600,                  // 不用改
-  "method":"rc4-md5"              // ss-server 上设定的加密方式, 建议: aes-256-cfb
+  "method":"aes-256-cfb"          // ss-server 上设定的加密方式
 }
 ```
 
