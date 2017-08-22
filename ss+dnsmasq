@@ -9,34 +9,25 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
     exit
 fi
 
-# 在本地生成 dnsmasq 需要的国内域名白名单列表。
-if ! ./generate_dns; then
-    echo '生成国内域名白名单不成功, 请重试.'
-    exit
-fi
-
 copy route/opt/etc/dnsmasq.d/ /opt/etc
 copy route/opt/etc/iptables.sh /opt/etc
 copy route/opt/etc/iptables.china /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
+copy route/opt/etc/restart_dnsmasq /opt/etc
+copy route/opt/etc/update_dns_whitelist /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 
 deploy_start
-# 运行 deploy_start 会即将开始部署, 这里做了两件事情:
-
-# - 首先会将 route 目录下的所有文件同步到路由器。
-# - 定义了一些方便的 function, 用来方便的修改这些文件配置.
-# -  deploy_start 必须单独写在一行, 因为这行以下的脚本会在远程路由器上执行.
-
 # ----------------------------------------------------
 #
 # 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
 #
 # ---------------------------------------------------
 
-# 初始化 entware. 建议手动执行。
-# entware-setup.sh; opkg update && opkg upgrade
+# 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
+# 在路由器上, 手动执行:
+# entware-setup.sh; opkg update
 
 # 如果不存在 ipset (例如 AC66U), 首先安装 ipset4
 which ipset &>/dev/null || opkg install ipset4
@@ -90,10 +81,14 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
+/opt/etc/update_dns_whitelist
+/jffs/scripts/services-stop && /jffs/scripts/services-start
+/opt/etc/iptables.sh
+
 # 一小时重启一次 dnsmasq, 暂时注释掉.
 # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
 
 # 部署成功, 重启路由器
-echo 'Deploy success! Rebooting, please wait ...'
-echo 'If any error occur, Please unplug U disk and reboot again!'
-reboot
+echo 'Deploy success, if not work, try reboot router.'
+echo 'If failed for could not connect to router WiFi, unplug U disk and reboot again!'
+# reroot
