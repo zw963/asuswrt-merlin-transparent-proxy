@@ -92,6 +92,10 @@ add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/serv
 /jffs/scripts/services-start
 /opt/etc/iptables.sh
 
+# 星期一的 3:15 分升级域名白名单.
+chmod +x /opt/etc/update_dns_whitelist &&
+    add_service services-start 'cru a run-services "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
+
 # 一小时重启一次 dnsmasq, 暂时注释掉.
 # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
 

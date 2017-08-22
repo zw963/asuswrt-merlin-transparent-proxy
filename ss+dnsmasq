@@ -19,6 +19,7 @@ copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 
 deploy_start
+
 # ----------------------------------------------------
 #
 # 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
@@ -82,8 +83,13 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
 /opt/etc/update_dns_whitelist
-/jffs/scripts/services-stop && /jffs/scripts/services-start
+/jffs/scripts/services-stop
+/jffs/scripts/services-start
 /opt/etc/iptables.sh
+
+# 星期一的 3:15 分升级域名白名单.
+chmod +x /opt/etc/update_dns_whitelist &&
+    add_service services-start 'cru a run-services "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
 
 # 一小时重启一次 dnsmasq, 暂时注释掉.
 # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
@@ -91,4 +97,4 @@ add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/serv
 # 部署成功, 重启路由器
 echo 'Deploy success, if not work, try reboot router.'
 echo 'If failed for could not connect to router WiFi, unplug U disk and reboot again!'
-# reroot
+# reboot
