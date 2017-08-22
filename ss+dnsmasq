@@ -11,7 +11,6 @@ fi
 
 copy route/opt/etc/dnsmasq.d/ /opt/etc
 copy route/opt/etc/iptables.sh /opt/etc
-copy route/opt/etc/iptables.china /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/update_dns_whitelist /opt/etc

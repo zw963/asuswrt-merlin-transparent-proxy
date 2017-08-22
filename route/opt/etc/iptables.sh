@@ -5,6 +5,15 @@
 # https://github.com/zw963/asuswrt-merlin-transparent-proxy/issues/4
 # https://github.com/RMerl/asuswrt-merlin/issues/1062
 
+# IF 条件确保只有在 SHADOWSOCKS chain 被清空后，才重新执行下面的 rule.
+# 建立一个叫做 SHADOWSOCKS 的新的 chain
+if ! iptables -t nat -N SHADOWSOCKS; then
+    # 如果创建不成功, 表示已经存在.
+    echo 'SHADOWSOCKS chain was exist!'
+    # ipset -L FREEWEB
+    exit
+fi
+
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 if [ "$ipset_protocal_version" == 6 ]; then
@@ -19,15 +28,6 @@ else
     insmod ip_set_nethash
     insmod ip_set_iphash
     insmod ipt_set
-fi
-
-# IF 条件确保只有在 SHADOWSOCKS chain 被清空后，才重新执行下面的 rule.
-# 建立一个叫做 SHADOWSOCKS 的新的 chain
-if ! $iptables -t nat -N SHADOWSOCKS; then
-    # 如果创建不成功, 表示已经存在.
-    echo 'SHADOWSOCKS chain was exist!'
-    ipset -L FREEWEB
-    exit
 fi
 
 # =================== tcp rule =================
@@ -49,9 +49,6 @@ $iptables -t nat -A SHADOWSOCKS -d 172.16.0.0/12 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 192.168.0.0/16 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 224.0.0.0/4 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 240.0.0.0/4 -j RETURN
-
-# 插入中国 ip 地址直接返回的 rule 到 SHADOWSOCKS chain
-sh /opt/etc/iptables.china
 
 # 插入如果访问目标 VPS 地址, 直接返回的 rule.
 $iptables -t nat -A SHADOWSOCKS -d SS_SERVER_IP -j RETURN
