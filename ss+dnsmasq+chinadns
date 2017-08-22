@@ -15,6 +15,7 @@ copy route/opt/etc/iptables.china /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/update_dns_whitelist /opt/etc
+copy route/opt/etc/update_ip_whitelist /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 
@@ -95,6 +96,9 @@ add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/serv
 # 星期一的 3:15 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist &&
     add_service services-start 'cru a run-services "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
+# 星期一的 3:25 分升级 IP 白名单.
+chmod +x /opt/etc/update_ip_whitelist &&
+    add_service services-start 'cru a run-services "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 
 # 一小时重启一次 dnsmasq, 暂时注释掉.
 # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
