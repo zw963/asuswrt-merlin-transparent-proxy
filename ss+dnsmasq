@@ -1,6 +1,6 @@
 #!/bin/sh
 
-self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.2.3/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.0/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -15,14 +15,11 @@ if ! ./generate_dns; then
     exit
 fi
 
-# copy route/opt/bin/ss-redir /opt/bin
-# copy route/opt/bin/ss-tunnel /opt/bin
 copy route/opt/etc/dnsmasq.d/ /opt/etc
 copy route/opt/etc/iptables.sh /opt/etc
 copy route/opt/etc/iptables.china /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
-# copy route/opt/etc/init.d/S22shadowsocks /opt/etc/init.d
 copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 
 deploy_start

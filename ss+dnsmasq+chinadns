@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-source ./functions/route_deploy_start.sh
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.0/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -15,8 +15,14 @@ if ! ./generate_dns; then
     exit
 fi
 
-route_deploy_start
+copy route/opt/etc/dnsmasq.d/ /opt/etc
+copy route/opt/etc/iptables.sh /opt/etc
+copy route/opt/etc/iptables.china /opt/etc
+copy route/opt/etc/patch_dnsmasq /opt/etc
+copy route/opt/etc/shadowsocks.json /opt/etc
+copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 
+deploy_start
 # 运行 deploy_start 会即将开始部署, 这里做了两件事情:
 
 # - 首先会将 route 目录下的所有文件同步到路由器。
@@ -39,15 +45,14 @@ which ipset &>/dev/null || opkg install ipset4
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 set -e
+opkg install libc libssp libopenssl libev libsodium libpcre shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel haveged
+opkg install chinadns
 if [ "$ipset_protocal_version" == 6 ]; then
     # AC87U 无需安装新版的 iptables/ipset
-    opkg install shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel rng-tools
-    opkg install chinadns
+    echo 'skip install iptables'
 else
     # AC66U, 需要额外安装新版的 iptables
-    opkg install shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel rng-tools
     opkg install iptables
-    opkg install chinadns
 fi
 set +e
 
