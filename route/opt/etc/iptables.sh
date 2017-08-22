@@ -40,7 +40,7 @@ ipset -N FREEWEB iphash
 # -A 链名 表示新增(append)一条规则到该链, 该规则增加在原本存在规则的最后面.
 # 换成 -I 链名, 则新插入的规则变为第一条规则.
 
-# 下面插入本地地址直接返回的 rule 到 SHADOWSOCKS chain
+# 插入本地地址直接返回的 rule 到 SHADOWSOCKS chain
 $iptables -t nat -A SHADOWSOCKS -d 0.0.0.0/8 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 10.0.0.0/8 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 127.0.0.0/8 -j RETURN
@@ -50,10 +50,10 @@ $iptables -t nat -A SHADOWSOCKS -d 192.168.0.0/16 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 224.0.0.0/4 -j RETURN
 $iptables -t nat -A SHADOWSOCKS -d 240.0.0.0/4 -j RETURN
 
-# 插入如果访问目标 VPS 地址, 直接返回的 rule.
+# 如果访问 VPS 地址, 直接返回.
 $iptables -t nat -A SHADOWSOCKS -d SS_SERVER_IP -j RETURN
 
-# 插入如果访问的域名在 FREEWEB 中, 直接返回的 rule.
+# 如果访问的域名在 FREEWEB 中, 直接返回.
 $iptables -t nat -A SHADOWSOCKS -p tcp -m set --match-set FREEWEB dst -j RETURN
 
 # 如果没有在之前的 rule 中 RETURN, 将执行下面的 rule.

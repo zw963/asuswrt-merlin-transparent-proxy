@@ -9,7 +9,7 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
     exit
 fi
 
-copy route/opt/etc/dnsmasq.d/ /opt/etc
+copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
@@ -103,6 +103,6 @@ chmod +x /opt/etc/update_ip_whitelist &&
 # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
 
 # 部署成功, 重启路由器
-echo 'Deploy success, if not work, try reboot router.'
+echo 'Deploy success, try disconnect and connect again, if not work, try reboot router.'
 echo 'If failed for could not connect to router WiFi, unplug U disk and reboot again!'
 # reboot

@@ -1,6 +1,4 @@
 /route/opt/etc/shadowsocks.json
-/route/opt/etc/dnsmasq.d/accelerated-domains-ipset.china.conf
-/route/opt/etc/dnsmasq.d/accelerated-domains.china.conf
 /route/opt/etc/profile
 /routeinit
 /route/opt/etc/init.d/S09dnscrypt-proxy
