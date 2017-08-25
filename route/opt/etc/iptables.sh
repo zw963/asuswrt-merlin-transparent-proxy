@@ -41,6 +41,8 @@ localips='
 240.0.0.0/4
 '
 
+ipset -N FREEWEB iphash
+
 # =================== tcp rule =================
 
 # iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
