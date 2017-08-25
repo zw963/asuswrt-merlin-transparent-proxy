@@ -26,8 +26,12 @@ deploy_start
 # ---------------------------------------------------
 
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
-# 在路由器上, 手动执行:
-# entware-setup.sh; opkg update
+# 在路由器上, 手动执行 entware-setup.sh
+
+if ! opkg update; then
+    echo '必须首先运行 entware-setup.sh 初始化包管理系统.'
+    exit
+fi
 
 # 如果不存在 ipset (例如 AC66U), 首先安装 ipset4
 which ipset &>/dev/null || opkg install ipset4
@@ -36,9 +40,12 @@ which ipset &>/dev/null || opkg install ipset4
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 set -e
-opkg install libc libssp libev libmbedtls libpcre libpthread libsodium haveged zlib
-opkg install shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel
-opkg install chinadns
+opkg install libc libssp libev libmbedtls libpcre libpthread libsodium haveged zlib libopenssl
+if opkg find shadowsocks-libev; then
+    opkg install shadowsocks-libev
+elif opkg find shadowsocks-libev-ss-redir; then
+    opkg install shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel
+fi
 
 if [ "$ipset_protocal_version" == 6 ]; then
     # AC87U 无需安装新版的 iptables/ipset
@@ -84,10 +91,10 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
-/opt/etc/update_dns_whitelist
-/jffs/scripts/services-stop
-/jffs/scripts/services-start
-/opt/etc/iptables.sh
+/opt/etc/update_dns_whitelist &&
+    /jffs/scripts/services-stop &&
+    /jffs/scripts/services-start &&
+    /opt/etc/iptables.sh
 
 # 星期一的 3:15 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist &&
@@ -96,7 +103,19 @@ chmod +x /opt/etc/update_dns_whitelist &&
 # 一小时重启一次 dnsmasq, 暂时注释掉.
 # chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
 
-# 部署成功, 重启路由器
-echo 'Deploy success, try disconnect and connect again, if not work, try reboot router.'
-echo 'If failed for could not connect to router WiFi, unplug U disk and reboot again!'
+echo '貌似部署成功了!'
+echo
+echo '如果无法翻墙, 按照下列步骤查错:'
+echo '1. 断掉已连接的 WiFi, 并重新连接, 看看是否可以翻墙.'
+echo '2. 保持 U 盘, 重启路由器, 并等待片刻, 看看是否可以翻墙.'
+echo '3. 检查 /opt/etc 下配置文件, 并运行 /jffs/scripts/services-stop; /jffs/scripts/services-start 重启所有服务'
+echo
+echo  '如果需要重新部署.'
+echo '1. 进入管理界面, 选择格式化 jffs, 并重启'
+echo '2. 使用 entware-setup.sh 重新初始化包管理系统'
+echo '3. 使用本脚本再次部署'
+echo
+echo '如果想暂时关闭透明代理'
+echo '在客户主机执行 $: ssh admin@192.168.1.1 chmod -x /opt/etc/iptables.sh, 并重启'
+echo '重新开启透明代理: $: ssh admin@192.168.1.1 chmod +x /opt/etc/iptables.sh, 并重启.'
 # reboot

@@ -86,7 +86,7 @@ ipt="$iptables -t mangle"
 
 $ipt -N SHADOWSOCKS
 
-# 下面基于 udp 的规则, 类似于 tcp,.
+# 下面基于 udp 的规则, 类似于 tcp.
 for i in $localips; do
     $ipt -A SHADOWSOCKS -d "$i" -j RETURN
 done
