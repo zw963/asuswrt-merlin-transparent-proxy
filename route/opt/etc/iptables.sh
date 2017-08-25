@@ -5,14 +5,9 @@
 # https://github.com/zw963/asuswrt-merlin-transparent-proxy/issues/4
 # https://github.com/RMerl/asuswrt-merlin/issues/1062
 
-# IF 条件确保只有在 SHADOWSOCKS chain 被清空后，才重新执行下面的 rule.
 # 建立一个叫做 SHADOWSOCKS 的新的 chain
-if ! iptables -t nat -N SHADOWSOCKS; then
-    # 如果创建不成功, 表示已经存在.
-    echo 'SHADOWSOCKS chain was exist!'
-    # ipset -L FREEWEB
-    exit
-fi
+iptables -t nat -N SHADOWSOCKS
+ipset -N FREEWEB iphash
 
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
@@ -30,18 +25,7 @@ else
     insmod ipt_set
 fi
 
-localips='
-0.0.0.0/8
-10.0.0.0/8
-127.0.0.0/8
-169.254.0.0/16
-172.16.0.0/12
-192.168.0.0/16
-224.0.0.0/4
-240.0.0.0/4
-'
-
-ipset -N FREEWEB iphash
+localips=$(cat /opt/etc/localips)
 
 # =================== tcp rule =================
 
