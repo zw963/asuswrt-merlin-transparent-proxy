@@ -1,16 +1,18 @@
 # 使用华硕 merlin 架设透明代理
 
-__Updated on 2017/08/08__
+__Updated on 2017/08/25__
 
-- 升级 ss-redir ss-tunnel 到最新的 3.0.6.
-- 当前支持的固件版本为: 380.67, opkg 版本为: 0.1.8
-- 如果从老的版本升级, 首选格式化 jffs 分区, 重新部署.
+- 升级 ss-redir ss-tunnel 到最新的 3.0.6, 仍旧支持老版本.
+- 固件版本首选: 380.68+, 因为最新的 ARM 架构的梅林(ac68U,ac88U,ac87u,ac5300 等)全线启用了 tproxy 模块.
+  据本人测试, 看 Youtube 等视频性能好很多.
+- opkg 版本: 0.1.8.
+- 如果从老的版本升级, 首选格式化 jffs 分区, 重启后重新部署.
 
 -------------------
 
 本文基于网络上大量资料整理，恕在此不一一列举，没有大量网友的无私分享，就不会有这个文章。
 
-本部署脚本原始基于华硕(ASUS) RT-AC66U MIPS 架构的路由器编写, 也在 RT-AC87U ARM 架构上实测成功.
+本部署脚本原始基于华硕(ASUS) RT-AC66U MIPS 架构的路由器编写, 也在 RT-AC87U, RT-5300 架构上实测成功.
 本文章的部署策略通过修改应该也适用于 OpenWRT 及其他系统, 思路是一样的。
 
 注意:
@@ -93,7 +95,7 @@ __请注意: 下面的步骤是在你的本地主机上操作, 而不是在你�
 这里以克隆项目到你的 $HOME 下为例:
 
 ```sh
-$ git clone git@github.com:zw963/asuswrt-merlin-transparent-proxy.git ~/asuswrt-merlin-transparent-proxy-master
+$: git clone git@github.com:zw963/asuswrt-merlin-transparent-proxy.git ~/asuswrt-merlin-transparent-proxy-master
 ```
 
 不会用 Git 的同学, 可以从 [这个地址](https://github.com/zw963/asuswrt-merlin-transparent-proxy/archive/master.zip) 下载,
@@ -171,9 +173,9 @@ $ ./ss+dnsmasq admin@192.168.1.1
 $ ./ss+dnsmasq+chinadns admin@192.168.1.1
 ```
 
-后者额外使用了 chinadns, 同时允许基于 IP 策略进行路由, 个人感觉不用 chinadns 速度更快一些, 推荐 `ss+dnsmasq` 方案.
+后者额外使用了 chinadns, 遇到国内部分网站访问异常, 可以选择这个.
 
-脚本如果执行未出错，最后会看到 ``Rebooting, please wait ...`` 字样, 路由器自动重启, 基本上就成功了.
+脚本如果执行未出错，最后会看到 ``貌似部署成功了!`` 字样, 可以断掉 WiFi 再连接后, 试下是否正常.
 
 部署成功后, 请耐心等待重启, 部署后比未部署时, 启动时间要长一些(重启大概需要两分钟), 这是正常的, 请耐心等待, 但是访问
 速度没有任何影响, 事实上, 通过路由 FQ 比在本机或浏览器做代理, 性能好很多.
