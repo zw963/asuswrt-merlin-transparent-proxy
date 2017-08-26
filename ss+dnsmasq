@@ -17,7 +17,7 @@ copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/update_dns_whitelist /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
-copy route/opt/etc/localips /opt/etc/init.d
+copy route/opt/etc/localips /opt/etc
 
 deploy_start
 
