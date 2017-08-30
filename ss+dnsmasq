@@ -43,7 +43,7 @@ ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' '
 
 set -e
 opkg install libc libssp libev libmbedtls libpcre libpthread libsodium haveged zlib libopenssl
-if opkg find shadowsocks-libev; then
+if opkg find shadowsocks-libev |grep -qs -e '.*'; then
     opkg install shadowsocks-libev
 elif opkg find shadowsocks-libev-ss-redir; then
     opkg install shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel
