@@ -1,9 +1,11 @@
 #!/bin/sh
 
-# 使用 Asus Merlin 提供的 Custom config files 能力，为 dnsmasq.conf 增加配置.
-if [ -d /opt/etc/dnsmasq.d ] && ! fgrep -qs 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' /etc/dnsmasq.conf; then
+if [ -d /opt/etc/dnsmasq.d ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
-    echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
-    # 检测语法, 并重启 dnsmasq.conf
+    fgrep -qs 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' /etc/dnsmasq.conf || echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
+    resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
+    dnsip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
+    cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |sed "s#114\.114\.114\.114#${dnsip}#" > /opt/etc/dnsmasq.d/accelerated-domains.china.conf
+
     dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 fi
