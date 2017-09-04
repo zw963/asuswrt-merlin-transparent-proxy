@@ -8,21 +8,9 @@ else
     iptables='/opt/sbin/iptables'
 fi
 
-localips=$(cat /opt/etc/localips)
-
-ipt="$iptables -t nat"
-
-for i in $localips; do
-    $ipt -D SHADOWSOCKS -d "$i" -j RETURN
-done
-$ipt -D SHADOWSOCKS -d SS_SERVER_IP -j RETURN
-$ipt -D SHADOWSOCKS -p tcp -m set --match-set FREEWEB dst -j RETURN
-$ipt -D SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
-$ipt -D PREROUTING -p tcp -j SHADOWSOCKS
-# $ipt -F SHADOWSOCKS             # flush
-# $ipt -X SHADOWSOCKS             # --delete-chain
-# $ipt -Z SHADOWSOCKS             # --zero
-
+$iptables -t nat -D PREROUTING -p tcp -j SHADOWSOCKS
+$iptables -t nat -F SHADOWSOCKS             # flush
+$iptables -t nat -X SHADOWSOCKS             # --delete-chain
 
 if ! modprobe xt_TPROXY; then
     echo 'Kernel not support tproxy!'
@@ -34,12 +22,6 @@ ip route del local 0.0.0.0/0 dev lo table 100
 
 ipt="$iptables -t mangle"
 
-for i in $localips; do
-    $ipt -D SHADOWSOCKS -d "$i" -j RETURN
-done
-$ipt -D SHADOWSOCKS -p udp -m set --match-set FREEWEB dst -j RETURN
-$ipt -D SHADOWSOCKS -p udp -j TPROXY --on-port 1082 --tproxy-mark 0x01/0x01
-$ipt -D PREROUTING -p udp -j SHADOWSOCKS
-# $ipt -F SHADOWSOCKS             # flush
-# $ipt -X SHADOWSOCKS             # --delete-chain
-# $ipt -Z SHADOWSOCKS             # --zero
+$iptables -t mangle -D PREROUTING -j SHADOWSOCKS
+$iptables -t mangle -F SHADOWSOCKS             # flush
+$iptables -t mangle -X SHADOWSOCKS             # --delete-chain

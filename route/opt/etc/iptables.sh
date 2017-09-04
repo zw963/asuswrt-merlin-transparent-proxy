@@ -53,10 +53,12 @@ $ipt -A SHADOWSOCKS -p tcp -m set --match-set FREEWEB dst -j RETURN
 # 这个 rule 将转发所有的 tcp 请求到 ss-redir 的本地端口.
 $ipt -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
 
-# 在 NAT 的初期阶段 (prerouting 阶段) 将发送到 80, 443 的所有请求, 应用 SHADOWSOCKS chain 中的规则.
-# $ipt -A PREROUTING -p tcp -m multiport --dports 80,443 -j SHADOWSOCKS
+# 在 NAT 的初期阶段 (prerouting 阶段) 应用 SHADOWSOCKS chain 中的 tcp 规则.
+# 应用规则, 注释这行代码, 重启后会让 TCP rules 失效.
 $ipt -I PREROUTING 1 -p tcp -j SHADOWSOCKS
-# $ipt -A SHADOWSOCKS -p tcp --syn -m connlimit --connlimit-above 32 -j RETURN
+
+# 这行代码为什么要开启?
+# $ipt -I OUTPUT 1  -p tcp -j SHADOWSOCKS
 
 # ====================== udp rule =======================
 
@@ -72,11 +74,12 @@ ipt="$iptables -t mangle"
 
 $ipt -N SHADOWSOCKS
 
-# 下面基于 udp 的规则, 类似于 tcp.
 for i in $localips; do
     $ipt -A SHADOWSOCKS -d "$i" -j RETURN
 done
+
 $ipt -A SHADOWSOCKS -p udp -m set --match-set FREEWEB dst -j RETURN
 $ipt -A SHADOWSOCKS -p udp -j TPROXY --on-port 1082 --tproxy-mark 0x01/0x01
-# 这里可以 -i interface 来手动指定仅仅路由指定的接口.
-$ipt -I PREROUTING 1 -p udp -j SHADOWSOCKS
+
+# 应用规则, 注释这行代码, 重启后会让 UDP rules 失效.
+$ipt -I PREROUTING 1 -j SHADOWSOCKS
