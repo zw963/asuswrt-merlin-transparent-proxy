@@ -99,7 +99,8 @@ replace_string 5353 '5356 -s 114.114.114.114,127.0.0.1:1082,8.8.4.4' /opt/etc/in
 
 # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
-if [ $(uname -m) == armv7l ]; then
+if modprobe xt_TPROXY; then
+    # 开启 udp delay
     replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
 fi
 
@@ -142,4 +143,4 @@ echo
 echo '如果想暂时关闭透明代理'
 echo "在客户主机执行 $: ssh admin@$targetip chmod -x /opt/etc/iptables.sh, 并重启"
 echo "重新开启透明代理: $: ssh admin@$targetip chmod +x /opt/etc/iptables.sh, 并重启."
-# reboot
+reboot

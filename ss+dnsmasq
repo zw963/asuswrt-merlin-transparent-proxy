@@ -87,12 +87,13 @@ replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables.sh
 replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables_disable.sh
 replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables_disable.sh
 
-# 直接将 ss-tunnel(端口 1082) 作为 dnsmasq 的上游 DNS 服务器, 用来转发 DNS 请求到 ss-server
+# 因为不支持 udp delay, 通过 ss-tunnel(1082 端口) 转发.
 replace_string UPSTREAM_PORT 1082 /opt/etc/dnsmasq.d/foreign_domains.conf
 
 # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
-if [ $(uname -m) == armv7l ]; then
+if modprobe xt_TPROXY; then
+    # 开启 udp delay
     replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
 fi
 
@@ -129,4 +130,4 @@ echo
 echo '如果想暂时关闭透明代理'
 echo "在客户主机执行 $: ssh admin@$targetip chmod -x /opt/etc/iptables.sh, 并重启"
 echo "重新开启透明代理: $: ssh admin@$targetip chmod +x /opt/etc/iptables.sh, 并重启."
-# reboot
+reboot
