@@ -5,6 +5,9 @@
 # https://github.com/zw963/asuswrt-merlin-transparent-proxy/issues/4
 # https://github.com/RMerl/asuswrt-merlin/issues/1062
 
+# use iptables-restore < /opt/etc/iptables.rules 恢复原始的 iptables
+[ -f /opt/etc/iptables.rules ] || iptables-save > /opt/etc/iptables.rules
+
 # 建立一个叫做 SHADOWSOCKS 的新的 chain
 iptables -t nat -N SHADOWSOCKS
 ipset -N FREEWEB iphash
