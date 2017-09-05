@@ -58,7 +58,7 @@ $ipt -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
 $ipt -I PREROUTING 1 -p tcp -j SHADOWSOCKS
 
 # 这行代码为什么要开启?
-# $ipt -I OUTPUT 1  -p tcp -j SHADOWSOCKS
+# $ipt -I OUTPUT 1 -p tcp -j SHADOWSOCKS
 
 # ====================== udp rule =======================
 
@@ -79,7 +79,7 @@ for i in $localips; do
 done
 
 $ipt -A SHADOWSOCKS -p udp -m set --match-set FREEWEB dst -j RETURN
-$ipt -A SHADOWSOCKS -p udp -j TPROXY --on-port 1082 --tproxy-mark 0x01/0x01
+$ipt -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port 1082 --tproxy-mark 0x01/0x01
 
 # 应用规则, 注释这行代码, 重启后会让 UDP rules 失效.
 $ipt -I PREROUTING 1 -p udp -j SHADOWSOCKS
