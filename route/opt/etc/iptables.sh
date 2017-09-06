@@ -87,7 +87,7 @@ for i in $localips; do
 done
 
 $ipt -A SHADOWSOCKS -p udp -m set --match-set FREEWEB dst -j RETURN
-$ipt -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port 1082 --tproxy-mark 0x01/0x01
+$ipt -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port SS_LOCAL_PORT --tproxy-mark 0x01/0x01
 
 # 应用规则, 注释这行代码, 重启后会让 UDP rules 失效.
 $ipt -I PREROUTING 1 -p udp -j SHADOWSOCKS
