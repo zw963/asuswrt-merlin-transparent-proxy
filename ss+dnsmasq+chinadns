@@ -51,7 +51,7 @@ elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
 fi
 
 opkg install chinadns
-opkg install bind-dig
+# opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then
     # AC87U 无需安装新版的 iptables/ipset
