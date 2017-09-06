@@ -65,6 +65,11 @@ $ipt -I PREROUTING 1 -p tcp -j SHADOWSOCKS
 
 # ====================== udp rule =======================
 
+# 貌似下面的 rule 对于 ss-tunnel 是无用的, 经过测试, FREEWEB 相关的 rule 也是无效的.
+
+# 先跳过下面代码的执行
+exit
+
 if ! modprobe xt_TPROXY; then
     echo 'Kernel not support tproxy!'
     exit
