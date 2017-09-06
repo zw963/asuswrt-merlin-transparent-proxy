@@ -76,11 +76,13 @@ for i in $localips; do
     $ipt -A SHADOWSOCKS -d "$i" -j RETURN
 done
 
-# 这里的 FREEWEB 是在 dnsmasq 里面添加的白名单域名, 也就是国内可以直接访问的域名列表.
-# 我期望的目的是:
-# - 使用单个的 ss-redir 就可以实现透明代理. (无需 ss-tunnel), 好吧, 这是第一步, 先解决这个.
-# - dnsmasq 中有大量的类似于下面的 ipset 规则(全都是国内域名)
-
+# 首先, 上面的 tcp rule 貌似是工作的, 现在要解决的问题是 udp rule 相关的.
+# 我期望解决的问题是:
+# - 第一步, 使用单个的 ss-redir 就可以实现透明代理. (无需 ss-tunnel).
+# - 第二步, dnsmasq 中有大量的类似于下面的 ipset 规则(全都是国内域名), 命名为 FREEWEB
+#   我希望可以利用 ipset 这些规则, 实现国内域名用默认, 国外走 redir 的 udp 接口 DNS
+#
+# 这是 dnsmasq 里面的内容示例:
 # ipset=/0-6.com/FREEWEB
 # ipset=/0-gold.net/FREEWEB
 # ipset=/00.net/FREEWEB
@@ -90,7 +92,7 @@ done
 # ipset=/0007.net/FREEWEB
 # ipset=/000dn.com/FREEWEB
 
-# ...
+# ... 总共有八千条左右.
 
 # ipset=/zzz4.com/FREEWEB
 # ipset=/zzzj.com/FREEWEB
@@ -103,13 +105,15 @@ done
 # ipset=/zzzj.com/FREEWEB
 # ipset=/zzzmode.com/FREE
 #
+# 下面默认的 server 不知道该怎么设定了.
 # server=/#/8.8.8.8#53   # 这里应该怎么设定? 写 ss-redir(1080)端口, 还是 8.8.8.8(53) ??
 #
-# 我希望可以利用这些规则, 实现国内域名用默认, 国外走 redir 的 udp 接口差 DNS
 
-# 下面是我的实现, 很显然, 目前不工作! 而且这里的 --on-port ???? 到底该是什么端口? 晕了.
+# 下面是我的解决办法, 试图在 udp 满足 ipset FREEWEB 时, 使用默认 DNS, 否则用 ss-redir(1080).
+# 但是很显然, 我写的是不工作的, 请指导下这里该咋写??? 谢谢
+
 $ipt -A SHADOWSOCKS -p udp -m set --match-set FREEWEB dst -j RETURN
-$ipt -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port 1082 --tproxy-mark 0x01/0x01
+$ipt -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port 1080 --tproxy-mark 0x01/0x01
 
 # 应用规则, 注释这行代码, 重启后会让 UDP rules 失效.
 $ipt -I PREROUTING 1 -p udp -j SHADOWSOCKS
