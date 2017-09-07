@@ -63,15 +63,24 @@ else
 fi
 set +e
 
-# asuswrt-merlin 有时候会清空 iptables 的 NAT 表, 因此让 iptables2.sh 一分钟定时执行一次.
-chmod +x /opt/etc/iptables2.sh && add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables2.sh"'
-
-# 删除之前版本创建的脚本, 这个脚本会造成当拔下 U 盘时, 路由器无法正常使用 DHCP.
-rm -f /jffs/configs/dnsmasq.conf.add
+# 启动的执行 iptables2.sh
+chmod +x /opt/etc/iptables2.sh &&
+    /opt/etc/iptables2.sh &&
+    add_service services-start '/opt/etc/iptables2.sh'
 
 # 所有服务启动完之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
-# 新的实现方式确保了即使拔掉 U 盘, 路由器会按照原本默认的方式正常上网.
-chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dnsmasq'
+# 新的实现方式确保如果拔掉 U 盘, 路由器会按照原本默认的方式正常上网, 便于灾难回复.
+chmod +x /opt/etc/patch_dnsmasq &&
+    /opt/etc/patch_dnsmasq &&
+    add_service services-start '/opt/etc/patch_dnsmasq'
+
+# 升级 dns 白名单列表, 并定时运行.
+chmod +x /opt/etc/update_dns_whitelist &&
+    /opt/etc/update_dns_whitelist &&
+    add_service services-start 'cru a run-services "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
+
+# 每隔 5 分钟检测下所有的服务是否运行. (这个要不要加?)
+# add_service services-start 'cru a run-services "*/5 * * * *" "/jffs/scripts/services-start"'
 
 # ----------------------------------------------------
 #
@@ -96,20 +105,6 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
 # 直接使用 8.8.4.4#53 作为 DNS 服务器, 这个 UDP 查询会通过 ss-redir 转发到 ss-server.
 replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
-
-# 每隔 1 分钟检测下所有的服务是否运行.
-add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
-
-/opt/etc/update_dns_whitelist &&
-    (/jffs/scripts/services-stop; /jffs/scripts/services-start) &&
-    /opt/etc/iptables2.sh
-
-# 星期一的 3:15 分升级域名白名单.
-chmod +x /opt/etc/update_dns_whitelist &&
-    add_service services-start 'cru a run-services "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
-
-# 一小时重启一次 dnsmasq, 暂时注释掉.
-# chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
 
 echo '貌似部署成功了!'
 echo
