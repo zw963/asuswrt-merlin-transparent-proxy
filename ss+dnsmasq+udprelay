@@ -10,7 +10,7 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
 fi
 
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
-copy route/opt/etc/iptables.sh /opt/etc
+copy route/opt/etc/iptables2.sh /opt/etc
 copy route/opt/etc/iptables_disable.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
@@ -35,7 +35,7 @@ if ! opkg update; then
 fi
 
 if ! modprobe xt_TPROXY; then
-    echo '路由器不支持 udp relay, 尝试运行 ss+dnsmasq.'
+    echo '路由器不支持 udp relay, 尝试运行 ss+dnsmasq 部署.'
     exit
 fi
 
@@ -63,8 +63,8 @@ else
 fi
 set +e
 
-# asuswrt-merlin 有时候会清空 iptables 的 NAT 表, 因此让 iptables.sh 一分钟定时执行一次.
-chmod +x /opt/etc/iptables.sh && add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
+# asuswrt-merlin 有时候会清空 iptables 的 NAT 表, 因此让 iptables2.sh 一分钟定时执行一次.
+chmod +x /opt/etc/iptables2.sh && add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables2.sh"'
 
 # 删除之前版本创建的脚本, 这个脚本会造成当拔下 U 盘时, 路由器无法正常使用 DHCP.
 rm -f /jffs/configs/dnsmasq.conf.add
@@ -82,14 +82,12 @@ chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dn
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
 replace_regex '"local_address".*' '"local_address":'"\"0.0.0.0\"," /opt/etc/shadowsocks.json
 
-# 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
-ss_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-ss_local_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
+# 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables2.sh 中对应的值。
+remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
+local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
 
-replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables.sh
-replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables.sh
-replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables_disable.sh
-replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables_disable.sh
+replace_string 'REMOTE_SERVER_IP' $remote_server_ip /opt/etc/iptables2.sh
+replace_string 'LOCAL_REDIR_PORT' $local_redir_port /opt/etc/iptables2.sh
 
 # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
@@ -97,14 +95,14 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # -u 参数开启 udp delay
 replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
 # 直接使用 8.8.4.4#53 作为 DNS 服务器, 这个 UDP 查询会通过 ss-redir 转发到 ss-server.
-replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.4.4#53' /opt/etc/dnsmasq.d/foreign_domains.conf
+replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
 
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
 /opt/etc/update_dns_whitelist &&
     (/jffs/scripts/services-stop; /jffs/scripts/services-start) &&
-    /opt/etc/iptables.sh
+    /opt/etc/iptables2.sh
 
 # 星期一的 3:15 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist &&
@@ -130,6 +128,6 @@ echo '1. 拔下 U 盘, 重启'
 echo '2. 进入管理界面, 选择格式化 jffs, 并重启'
 echo
 echo '如果想暂时关闭透明代理'
-echo "在客户主机执行 $: ssh admin@$targetip chmod -x /opt/etc/iptables.sh, 并重启"
-echo "重新开启透明代理: $: ssh admin@$targetip chmod +x /opt/etc/iptables.sh, 并重启."
+echo "在客户主机执行 $: ssh admin@$targetip chmod -x /opt/etc/iptables2.sh, 并重启"
+echo "重新开启透明代理: $: ssh admin@$targetip chmod +x /opt/etc/iptables2.sh, 并重启."
 reboot
