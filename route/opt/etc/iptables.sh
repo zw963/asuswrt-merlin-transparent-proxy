@@ -11,16 +11,16 @@ ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' '
 
 if [ "$ipset_protocal_version" == 6 ]; then
     iptables='/usr/sbin/iptables'
-    insmod ip_set
-    insmod ip_set_hash_net
-    insmod ip_set_hash_ip
-    insmod xt_set
+    modprobe ip_set
+    modprobe ip_set_hash_net
+    modprobe ip_set_hash_ip
+    modprobe xt_set
 else
     iptables='/opt/sbin/iptables'
-    insmod ip_set
-    insmod ip_set_nethash
-    insmod ip_set_iphash
-    insmod ipt_set
+    modprobe ip_set
+    modprobe ip_set_nethash
+    modprobe ip_set_iphash
+    modprobe ipt_set
 fi
 
 localips=$(cat /opt/etc/localips)
