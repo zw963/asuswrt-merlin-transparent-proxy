@@ -106,7 +106,10 @@ chmod +x /opt/etc/update_ip_whitelist && add_service services-start 'cru a run-s
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
-(/jffs/scripts/services-stop; /jffs/scripts/services-start)
+set +e
+/jffs/scripts/services-stop
+set -e
+/jffs/scripts/services-start
 
 echo '貌似部署成功了!'
 echo
