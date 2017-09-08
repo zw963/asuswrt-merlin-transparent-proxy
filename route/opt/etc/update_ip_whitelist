@@ -6,13 +6,10 @@ wget -O - 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' |
     awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /opt/etc/chinadns_chnroute.new
 
 if [ -s /opt/etc/chinadns_chnroute.new ]; then
-    if [ ! -f /opt/etc/chinadns_chnroute.old ]; then
+    if [ ! -f /opt/etc/chinadns_chnroute.old -a -f /opt/etc/chinadns_chnroute.txt ]; then
         mv /opt/etc/chinadns_chnroute.txt /opt/etc/chinadns_chnroute.old
     fi
+    mv /opt/etc/chinadns_chnroute.new /opt/etc/chinadns_chnroute.txt
 
-    if [ -f /opt/etc/chinadns_chnroute.new ]; then
-        mv /opt/etc/chinadns_chnroute.new /opt/etc/chinadns_chnroute.txt
-    fi
-
-    /opt/etc/init.d/S56chinadns restart
+    [ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart
 fi
