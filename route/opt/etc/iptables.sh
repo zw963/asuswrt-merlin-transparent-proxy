@@ -1,22 +1,20 @@
 #!/bin/sh
 
-# use iptables-restore < /opt/etc/iptables.rules 恢复原始的 iptables
-[ -f /opt/etc/iptables.rules ] || iptables-save > /opt/etc/iptables.rules
+echo 'Applying iptables rule ...'
 
-# 建立一个叫做 SHADOWSOCKS 的新的 chain
-iptables -t nat -N SHADOWSOCKS
-ipset -N FREEWEB iphash
+# use /opt/etc/iptables_disable.sh to restore iptables
+[ -f /opt/etc/iptables.rules ] || iptables-save > /opt/etc/iptables.rules
 
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 if [ "$ipset_protocal_version" == 6 ]; then
-    iptables='/usr/sbin/iptables'
+    alias iptables='/usr/sbin/iptables'
     modprobe ip_set
     modprobe ip_set_hash_net
     modprobe ip_set_hash_ip
     modprobe xt_set
 else
-    iptables='/opt/sbin/iptables'
+    alias iptables='/opt/sbin/iptables'
     modprobe ip_set
     modprobe ip_set_nethash
     modprobe ip_set_iphash
@@ -25,95 +23,91 @@ fi
 
 localips=$(cat /opt/etc/localips)
 
-# =================== tcp rule =================
+# 默认值 hashsize 1024 maxelem 65536, 已经足够了.
+if ipset -N CHINAIPS hash:net; then
+    # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
+    for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
+        ipset add CHINAIPS $ip
+    done
+fi
+
+remote_server_ip=REMOTE_SERVER_IP
+local_redir_port=LOCAL_REDIR_PORT
+
+# ====================== tcp rule =======================
 
 # iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
-# 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链.
+# 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
+iptables -t nat -N SHADOWSOCKS_TCP
 
-# -A 链名 表示新增(append)一条规则到该链, 该规则增加在原本存在规则的最后面.
-# 换成 -I 链名, 则新插入的规则变为第一条规则.
-
-# 插入本地地址直接返回的 rule 到 SHADOWSOCKS chain
-
-ipt="$iptables -t nat"
-
+# 为 SHADOWSOCKS_TCP chain 插入 rule.
 for i in $localips; do
-    $ipt -A SHADOWSOCKS -d "$i" -j RETURN
+    iptables -t nat -A SHADOWSOCKS_TCP -d "$i" -j RETURN
 done
 
-# 如果访问 VPS 地址, 直接返回.
-$ipt -A SHADOWSOCKS -d SS_SERVER_IP -j RETURN
+# 如果访问 VPS 地址, 无需跳转, 直接返回, 否则会形成死循环.
+iptables -t nat -A SHADOWSOCKS_TCP -d $remote_server_ip -j RETURN
+# 访问来自中国的 ip, 直接返回.
+iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
+# 否则, 重定向到 ss-redir
+iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
 
-# 如果访问的域名在 FREEWEB 中, 直接返回.
-$ipt -A SHADOWSOCKS -p tcp -m set --match-set FREEWEB dst -j RETURN
-
-# 如果没有在之前的 rule 中 RETURN, 将执行下面的 rule.
-# 这个 rule 将转发所有的 tcp 请求到 ss-redir 的本地端口.
-$ipt -A SHADOWSOCKS -p tcp -j REDIRECT --to-ports SS_LOCAL_PORT
-
-# 在 NAT 的初期阶段 (prerouting 阶段) 应用 SHADOWSOCKS chain 中的 tcp 规则.
-# 应用规则, 注释这行代码, 重启后会让 TCP rules 失效.
-$ipt -I PREROUTING 1 -p tcp -j SHADOWSOCKS
-
-# 这行代码为什么要开启?
-# $ipt -I OUTPUT 1 -p tcp -j SHADOWSOCKS
+# Apply tcp rule
+iptables -t nat -I PREROUTING 1 -p tcp -j SHADOWSOCKS_TCP
+# 从路由器内访问时, 也是用这个 rule.
+iptables -t nat -I OUTPUT 1 -p tcp -j SHADOWSOCKS_TCP
 
 # ====================== udp rule =======================
 
+# 只有满足下面两个条件, 才需要 udp rule
+
 if ! modprobe xt_TPROXY; then
     echo 'Kernel not support tproxy!'
-    exit
+    exit 0
 fi
 
-ip rule add fwmark 0x01/0x01 table 100
-ip route add local 0.0.0.0/0 dev lo table 100
+if ! cat /opt/etc/init.d/S22shadowsocks |grep '^ARGS=' |grep -qs -e '-u'; then
+    echo 'ss-redir not enable udp redir!'
+    exit 0
+fi
 
-ipt="$iptables -t mangle"
+iptables -t mangle -N SHADOWSOCKS_UDP
+iptables -t mangle -N SHADOWSOCKS_MARK
 
-$ipt -N SHADOWSOCKS
+ip route flush table 100
+ip rule add fwmark 1 lookup 100
+ip route add local default dev lo table 100
 
 for i in $localips; do
-    $ipt -A SHADOWSOCKS -d "$i" -j RETURN
+    iptables -t mangle -A SHADOWSOCKS_MARK -d "$i" -j RETURN
+    iptables -t mangle -A SHADOWSOCKS_UDP -d "$i" -j RETURN
 done
 
-# 首先, 上面的 tcp rule 貌似是工作的, 现在要解决的问题是 udp rule 相关的.
-# 我期望解决的问题是:
-# - 第一步, 使用单个的 ss-redir 就可以实现透明代理. (无需 ss-tunnel).
-# - 第二步, dnsmasq 中有大量的类似于下面的 ipset 规则(全都是国内域名), 命名为 FREEWEB
-#   我希望可以利用 ipset 这些规则, 实现国内域名用默认, 国外走 redir 的 udp 接口 DNS
-#
-# 这是 dnsmasq 里面的内容示例:
-# ipset=/0-6.com/FREEWEB
-# ipset=/0-gold.net/FREEWEB
-# ipset=/00.net/FREEWEB
-# ipset=/0000738.com/FREEWEB
-# ipset=/0001688.com/FREEWEB
-# ipset=/000219.com/FREEWEB
-# ipset=/0007.net/FREEWEB
-# ipset=/000dn.com/FREEWEB
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -j RETURN
+# iptables -t mangle -A SHADOWSOCKS_MARK -d $remote_server_ip -j RETURN
 
-# ... 总共有八千条左右.
+# 猜测:
+# 1. 这一步执行真正的 set-mark 操作.
+# 2. 所有目的地 ip 不在 CHINAIPS 列表中的数据包, 将会 setmark 1.
+# 3. 此时, 这些 ip 是国外的数据包满足了 tproxy 的策略, 因此被发往 ss-redir 端口.
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set ! --match-set CHINAIPS dst -j MARK --set-mark 1
 
-# ipset=/zzz4.com/FREEWEB
-# ipset=/zzzj.com/FREEWEB
-# ipset=/zzzmode.com/FREEWEB
-# ipset=/zzzyb.com/FREEWEB
-# ipset=/zzzyit.com/FREEWEB
-# ipset=/zzyjs.com/FREEWEB
-# ipset=/zzyzphoto.com/FREEWEB
-# ipset=/zzz4.com/FREEWEB
-# ipset=/zzzj.com/FREEWEB
-# ipset=/zzzmode.com/FREE
-#
-# 下面默认的 server 不知道该怎么设定了.
-# server=/#/8.8.8.8#53   # 这里应该怎么设定? 写 ss-redir(1080)端口, 还是 8.8.8.8(53) ??
-#
+# 几个需要澄清的地方:
+# 1. --dport 53 -d 8.8.8.8 这些是相对于宿主机来说的, 即: client.
+# 2. TPROXY only works in iptables PREROUTING-chain, 即: 在数据包进入路由器时, 使用 tproxy 进行代理.
 
-# 下面是我的解决办法, 试图在 udp 满足 ipset FREEWEB 时, 使用默认 DNS, 否则用 ss-redir(1080).
-# 但是很显然, 我写的是不工作的, 请指导下这里该咋写??? 谢谢
+# 猜测:
+# 1. 这条规则, 在数据包进入路由器时被应用.
+# 2. --dport 53, 表示进入的包, 目标端口是 53, 也就是 DNS 包.
+# 3. --on-ip 192.168.50.1, 表示进入的包, 目标 ip 就是路由器的地址, 即: 192.168.50.1
+# 4. --on-port 是 tproxy 模块要代理到的目标, 这里是 1080, 没错了, 它和 --tproxy-mark 0x01/0x01
+#    一起配合工作, 表示, 如果有数据包被 mark 为 0x01/0x01, 就转发到 1080 端口
+#    这一步, 只是完成了 tproxy 代理的策略, 并没有任何 set mark 操作发生.
+iptables -t mangle -A SHADOWSOCKS_UDP -p udp --dport 53 -j TPROXY --on-port 1080 --on-ip 192.168.50.1 --tproxy-mark 0x01/0x01
 
-$ipt -A SHADOWSOCKS -p udp -m set --match-set FREEWEB dst -j RETURN
-$ipt -A SHADOWSOCKS -p udp --dport 53 -j TPROXY --on-port 1080 --tproxy-mark 0x01/0x01
+# apply udp rule
 
-# 应用规则, 注释这行代码, 重启后会让 UDP rules 失效.
-$ipt -I PREROUTING 1 -p udp -j SHADOWSOCKS
+# -A 链名 表示新增(append)一条规则到该链, 该规则增加在原本存在规则的最后面.
+# 换成 -I 链名 1, 则新插入的规则变为第一条规则.
+iptables -t mangle -A PREROUTING -p udp -j SHADOWSOCKS_UDP
+iptables -t mangle -A OUTPUT -p udp -j SHADOWSOCKS_MARK
