@@ -72,13 +72,6 @@ fi
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
-# 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
-remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
-
-replace_string 'REMOTE_SERVER_IP' $remote_server_ip /opt/etc/iptables.sh
-replace_string 'LOCAL_REDIR_PORT' $local_redir_port /opt/etc/iptables.sh
-
 # 将 chinadns 作为 dnsmasq 的上游 DNS 服务器
 replace_string UPSTREAM_PORT 5356 /opt/etc/dnsmasq.d/foreign_domains.conf
 
