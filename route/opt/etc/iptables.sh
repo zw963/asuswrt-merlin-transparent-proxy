@@ -30,6 +30,9 @@ if ipset -N CHINAIPS hash:net; then
         ipset add CHINAIPS $ip
     done
 fi
+# 将 pkg.entware.net 的 ip 也加进白名单, 不知道为啥, 使用代理无法下载 ipk 文件.
+# 稍后重构, 这里使用一个白名单文件来做这件事情.
+ipset add CHINAIPS 81.4.123.217
 
 remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
