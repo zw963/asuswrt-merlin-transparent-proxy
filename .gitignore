@@ -1,4 +1,2 @@
 /route/opt/etc/shadowsocks.json
-/route/opt/etc/profile
-/routeinit
-/route/opt/etc/init.d/S09dnscrypt-proxy
+route/opt/etc/dnscrypt-proxy.sh
