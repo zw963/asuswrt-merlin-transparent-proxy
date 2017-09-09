@@ -1,6 +1,6 @@
 #!/bin/sh
 
-self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.1/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.3/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -27,10 +27,8 @@ deploy_start
 #
 # ---------------------------------------------------
 
-echo '如果第一次运行本脚本, 请务必初始化 entware 包管理系统.'
-echo 'ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
-echo '三秒钟后继续'
-sleep 3
+# 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
+# ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
 
 if ! opkg update; then
     echo "Run \`entware-setup.sh' to initalize entware-ng!"
@@ -74,13 +72,6 @@ fi
 
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
-
-# 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
-remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
-
-replace_string 'REMOTE_SERVER_IP' $remote_server_ip /opt/etc/iptables.sh
-replace_string 'LOCAL_REDIR_PORT' $local_redir_port /opt/etc/iptables.sh
 
 # 直接使用 8.8.8.8#53 查询 DNS, 目标地址会通过 ss-redir 转发到 ss-server 执行.
 replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
