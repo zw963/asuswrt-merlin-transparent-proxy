@@ -2,17 +2,12 @@
 
 set -e
 
-wget -O - 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' |
-    awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /opt/etc/chinadns_chnroute.new
+curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' > /tmp/chinadns_chnroute.txt
 
-if [ -s /opt/etc/chinadns_chnroute.new ]; then
-    if [ ! -f /opt/etc/chinadns_chnroute.old ]; then
-        mv /opt/etc/chinadns_chnroute.txt /opt/etc/chinadns_chnroute.old
-    fi
-
-    if [ -f /opt/etc/chinadns_chnroute.new ]; then
-        mv /opt/etc/chinadns_chnroute.new /opt/etc/chinadns_chnroute.txt
-    fi
-
-    /opt/etc/init.d/S56chinadns restart
+if [ ! -f /opt/etc/chinadns_chnroute.old -a -f /opt/etc/chinadns_chnroute.txt ]; then
+    mv /opt/etc/chinadns_chnroute.txt /opt/etc/chinadns_chnroute.old
 fi
+
+cat /tmp/chinadns_chnroute.txt | awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /opt/etc/chinadns_chnroute.txt
+
+[ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart

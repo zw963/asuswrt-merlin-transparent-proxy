@@ -31,9 +31,8 @@ if ipset -N CHINAIPS hash:net; then
     done
 fi
 
-remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
+remote_server_ip=REMOTE_SERVER_IP
+local_redir_port=LOCAL_REDIR_PORT
 
 # ====================== tcp rule =======================
 
@@ -75,6 +74,7 @@ fi
 iptables -t mangle -N SHADOWSOCKS_UDP
 iptables -t mangle -N SHADOWSOCKS_MARK
 
+ip route flush table 100
 ip rule add fwmark 1 lookup 100
 ip route add local default dev lo table 100
 
@@ -83,13 +83,14 @@ for i in $localips; do
     iptables -t mangle -A SHADOWSOCKS_UDP -d "$i" -j RETURN
 done
 
-iptables -t mangle -A SHADOWSOCKS_MARK -d $remote_server_ip -j RETURN
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -j RETURN
+# iptables -t mangle -A SHADOWSOCKS_MARK -d $remote_server_ip -j RETURN
 
 # 猜测:
 # 1. 这一步执行真正的 set-mark 操作.
-# 2. 所有目的地 ip 为 8.8.8.8, 端口为 53 的数据包都将会 setmark 1.
-# 3. 这意味着所有的 DNS 数据包都被发往 ss-redir 端口 在 VPS 使用 8.8.8.8 来解析.
-iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.8.8 --dport 53 -j MARK --set-mark 1
+# 2. 所有目的地 ip 不在 CHINAIPS 列表中的数据包, 将会 setmark 1.
+# 3. 此时, 这些 ip 是国外的数据包满足了 tproxy 的策略, 因此被发往 ss-redir 端口.
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set ! --match-set CHINAIPS dst -j MARK --set-mark 1
 
 # 几个需要澄清的地方:
 # 1. --dport 53 -d 8.8.8.8 这些是相对于宿主机来说的, 即: client.
@@ -102,7 +103,7 @@ iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.8.8 --dport 53 -j MARK --se
 # 4. --on-port 是 tproxy 模块要代理到的目标, 这里是 1080, 没错了, 它和 --tproxy-mark 0x01/0x01
 #    一起配合工作, 表示, 如果有数据包被 mark 为 0x01/0x01, 就转发到 1080 端口
 #    这一步, 只是完成了 tproxy 代理的策略, 并没有任何 set mark 操作发生.
-iptables -t mangle -A SHADOWSOCKS_UDP -p udp --dport 53 -j TPROXY --on-port 1080 --on-ip $local_redir_ip --tproxy-mark 0x01/0x01
+iptables -t mangle -A SHADOWSOCKS_UDP -p udp --dport 53 -j TPROXY --on-port 1080 --on-ip 192.168.50.1 --tproxy-mark 0x01/0x01
 
 # apply udp rule
 

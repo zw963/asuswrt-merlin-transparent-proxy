@@ -1,6 +1,6 @@
 #!/bin/sh
 
-self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.1/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.3/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -14,10 +14,10 @@ copy route/opt/etc/iptables.sh /opt/etc
 copy route/opt/etc/iptables_disable.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
-copy route/opt/etc/update_dns_whitelist /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
-copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 copy route/opt/etc/localips /opt/etc
+copy route/opt/etc/update_ip_whitelist /opt/etc
+copy route/opt/etc/chinadns_chnroute.txt /opt/etc
 
 deploy_start
 
@@ -28,10 +28,15 @@ deploy_start
 # ---------------------------------------------------
 
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
-# 在路由器上, 手动执行 entware-setup.sh
+# ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
 
 if ! opkg update; then
-    echo '必须首先运行 entware-setup.sh 初始化包管理系统.'
+    echo "Run \`entware-setup.sh' to initalize entware-ng!"
+    exit
+fi
+
+if ! modprobe xt_TPROXY; then
+    echo "Router not support udp relay, try use \`ss+chinadns' to deploy."
     exit
 fi
 
@@ -42,11 +47,12 @@ which ipset &>/dev/null || opkg install ipset4
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 set -e
+
 opkg install libc libssp libev libmbedtls libpcre libpthread libsodium haveged zlib libopenssl
 if opkg find shadowsocks-libev |grep -qs -e '.*'; then
     opkg install shadowsocks-libev
 elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
-    opkg install shadowsocks-libev-ss-redir shadowsocks-libev-ss-tunnel
+    opkg install shadowsocks-libev-ss-redir
 fi
 # opkg install bind-dig
 
@@ -57,17 +63,6 @@ else
     # AC66U, 需要额外安装新版的 iptables
     opkg install iptables
 fi
-set +e
-
-# asuswrt-merlin 有时候会清空 iptables 的 NAT 表, 因此让 iptables.sh 一分钟定时执行一次.
-chmod +x /opt/etc/iptables.sh && add_service services-start 'cru a iptables-nat "*/1 * * * *" "/opt/etc/iptables.sh"'
-
-# 删除之前版本创建的脚本, 这个脚本会造成当拔下 U 盘时, 路由器无法正常使用 DHCP.
-rm -f /jffs/configs/dnsmasq.conf.add
-
-# 所有服务启动完之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
-# 新的实现方式确保了即使拔掉 U 盘, 路由器会按照原本默认的方式正常上网.
-chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dnsmasq'
 
 # ----------------------------------------------------
 #
@@ -78,38 +73,34 @@ chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dn
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
-# 取得 shadowsocks.json 中的服务器 ip 地址以及 ss-redir 端口, 并自动替换 iptables.sh 中对应的值。
-ss_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-ss_local_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port"' |grep -o '[0-9]*')
+# 直接使用 8.8.8.8#53 查询 DNS, 目标地址会通过 ss-redir 转发到 ss-server 执行.
+replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
 
-replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables.sh
-replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables.sh
-replace_string 'SS_SERVER_IP' $ss_server_ip /opt/etc/iptables_disable.sh
-replace_string 'SS_LOCAL_PORT' $ss_local_port /opt/etc/iptables_disable.sh
-
-# 因为不支持 udp delay, 通过 ss-tunnel(1082 端口) 转发.
-replace_string UPSTREAM_PORT 1082 /opt/etc/dnsmasq.d/foreign_domains.conf
+# 开启 udp delay
+replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
 
 # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
-if modprobe xt_TPROXY; then
-    # 开启 udp delay
-    replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
-fi
 
+# ----------------------------------------------------
+#
+# 启动所需的脚本
+#
+# ---------------------------------------------------
+
+# 所有服务启动完之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
+chmod +x /opt/etc/patch_dnsmasq && add_service services-start '/opt/etc/patch_dnsmasq'
+# 启动执行 iptables.sh
+chmod +x /opt/etc/iptables.sh && add_service services-start '/opt/etc/iptables.sh'
+# 星期一的 3:25 分升级 IP 白名单.
+chmod +x /opt/etc/update_ip_whitelist && add_service services-start 'cru a run-services "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
-/opt/etc/update_dns_whitelist &&
-    (/jffs/scripts/services-stop; /jffs/scripts/services-start) &&
-    /opt/etc/iptables.sh
-
-# 星期一的 3:15 分升级域名白名单.
-chmod +x /opt/etc/update_dns_whitelist &&
-    add_service services-start 'cru a run-services "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
-
-# 一小时重启一次 dnsmasq, 暂时注释掉.
-# chmod +x /opt/etc/restart_dnsmasq && add_service services-start 'cru a restart_dnsmasq "* */1 * * *" "/opt/etc/restart_dnsmasq"'
+set +e
+/jffs/scripts/services-stop
+set -e
+/jffs/scripts/services-start
 
 echo '貌似部署成功了!'
 echo
@@ -124,10 +115,6 @@ echo '2. 使用 entware-setup.sh 重新初始化包管理系统'
 echo '3. 使用本脚本再次部署'
 echo
 echo  '如果无法连接路由器.'
-echo '1. 拔下 U 盘, 重启'
+echo '1. 拔下 U 盘, 重启, 尝试重新连接路由器'
 echo '2. 进入管理界面, 选择格式化 jffs, 并重启'
-echo
-echo '如果想暂时关闭透明代理'
-echo "在客户主机执行 $: ssh admin@$targetip chmod -x /opt/etc/iptables.sh, 并重启"
-echo "重新开启透明代理: $: ssh admin@$targetip chmod +x /opt/etc/iptables.sh, 并重启."
-reboot
+# reboot
