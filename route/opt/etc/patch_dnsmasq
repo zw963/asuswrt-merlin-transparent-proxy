@@ -8,3 +8,11 @@ if [ -d /opt/etc/dnsmasq.d ]; then
     fi
     dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 fi
+
+resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
+dnsip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
+
+if [ -e /opt/etc/init.d/S56chinadns ]; then
+    sed -i "s#-s [0-9.]*,#-s ${dnsip},#" /opt/etc/init.d/S56chinadns
+    /opt/etc/init.d/S56chinadns restart
+fi
