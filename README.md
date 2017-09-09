@@ -148,6 +148,8 @@ $ touch route/opt/etc/shadowsocks.json
   这是因为大部分没有被墙的网站走的是直连, 首选, 老的 MIPS 架构路由器也可用.
 - ss+chinadns+dnscrypt 这应该是目前最安全, 高效的方式, 可完全阻止运营商对 DNS 的污染, 因为加密传输嘛.
   但是这个也是最麻烦的, 因为你必须在远程服务器上架设 dnscrypt server, 详见 [dnscrypt-wrapper](https://github.com/cofyc/dnscrypt-wrapper)
+  我目前用的这种方式, 个人感觉, 对于像我这样, 需要频繁打开不同的国外网址的需求较多, 效果好于 ss+chinadns.
+  尤其是打开页面速度变快, 因为以前常常卡在 DNS 解析那块儿, 现在再也不用担心 `DNS 投毒` 了.
 - ss+udprelay (仅 ARM 架构支持), 只需要 ss-redir 一个命令自己全部搞定, 如果你有很好的国外线路, 可以尝试这个. 
 
 此时，在你的电脑上应该已经可以自动 ssh 登陆到你的路由器,
