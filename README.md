@@ -142,10 +142,12 @@ $ touch route/opt/etc/shadowsocks.json
 
 ### 运行一键部署脚本自动部署.
 
-此时有两个选择:
+此时有三个选择:
 
 - ss+chinadns, 较好的兼容国内网站, 省流量, 但是某些运营商线路, 访问某些国外网站可能会比较慢,
   这是因为大部分没有被墙的网站走的是直连, 首选, 老的 MIPS 架构路由器也可用.
+- ss+chinadns+dnscrypt 这应该是目前最安全, 高效的方式, 可完全阻止运营商对 DNS 的污染, 因为加密传输嘛.
+  但是这个也是最麻烦的, 因为你必须在远程服务器上架设 dnscrypt server, 详见 [dnscrypt-wrapper](https://github.com/cofyc/dnscrypt-wrapper)
 - ss+udprelay (仅 ARM 架构支持), 只需要 ss-redir 一个命令自己全部搞定, 如果你有很好的国外线路, 可以尝试这个. 
 
 此时，在你的电脑上应该已经可以自动 ssh 登陆到你的路由器,
@@ -334,6 +336,182 @@ dnsmasq: syntax check OK.
 Applying iptables rule, it may take several minute to finish ...
 ```
 
+下面是 ss+chinadns+dnscrypt 安装成功输出示例
+
+```
+rsync is not installed in remote host, fallback to use scp command.
+dnscrypt-proxy.sh                                                                                                                                           100%  187    75.1KB/s   00:00    
+foreign_domains.conf                                                                                                                                        100%   34    14.3KB/s   00:00    
+iptables.sh                                                                                                                                                 100% 4713     1.6MB/s   00:00    
+iptables_disable.sh                                                                                                                                         100%  474   187.7KB/s   00:00    
+patch_dnsmasq                                                                                                                                               100%  981   395.0KB/s   00:00    
+restart_dnsmasq                                                                                                                                             100%   84    22.7KB/s   00:00    
+shadowsocks.json                                                                                                                                            100%  195    25.9KB/s   00:00    
+localips                                                                                                                                                    100%  265    67.9KB/s   00:00    
+update_ip_whitelist                                                                                                                                         100%  488   128.3KB/s   00:00    
+chinadns_chnroute.txt                                                                                                                                       100%  121KB   2.9MB/s   00:00    
+remote host missing bash, try to install it...
+Installing bash (4.3.42-1a) to root...
+Downloading http://pkg.entware.net/binaries/armv7/bash_4.3.42-1a_armv7soft.ipk
+Installing libncurses (6.0-1c) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libncurses_6.0-1c_armv7soft.ipk
+Installing libncursesw (6.0-1c) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libncursesw_6.0-1c_armv7soft.ipk
+Configuring libncursesw.
+Configuring libncurses.
+Configuring bash.
+***********************************************************
+Remote deploy scripts is started !!
+***********************************************************
+Downloading http://pkg.entware.net/binaries/armv7/Packages.gz
+Updated list of available packages in /opt/var/opkg-lists/packages
+Package libc (2.23-6) installed in root is up to date.
+Package libssp (6.3.0-6) installed in root is up to date.
+Installing libev (4.22-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libev_4.22-1_armv7soft.ipk
+Installing libmbedtls (2.4.2-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libmbedtls_2.4.2-1_armv7soft.ipk
+Installing libpcre (8.40-2) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libpcre_8.40-2_armv7soft.ipk
+Package libpthread (2.23-6) installed in root is up to date.
+Installing libsodium (1.0.12-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libsodium_1.0.12-1_armv7soft.ipk
+Installing haveged (1.9.1-5) to root...
+Downloading http://pkg.entware.net/binaries/armv7/haveged_1.9.1-5_armv7soft.ipk
+Installing libhavege (1.9.1-5) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libhavege_1.9.1-5_armv7soft.ipk
+Installing zlib (1.2.11-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/zlib_1.2.11-1_armv7soft.ipk
+Installing libopenssl (1.0.2k-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libopenssl_1.0.2k-1_armv7soft.ipk
+Configuring libev.
+Configuring libpcre.
+Configuring libmbedtls.
+Configuring libsodium.
+Configuring libhavege.
+Configuring haveged.
+Configuring zlib.
+Configuring libopenssl.
+Installing shadowsocks-libev (3.0.6-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/shadowsocks-libev_3.0.6-1_armv7soft.ipk
+Installing libudns (0.4-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libudns_0.4-1_armv7soft.ipk
+Configuring libudns.
+Configuring shadowsocks-libev.
+Collected errors:
+ * resolve_conffiles: Existing conffile /opt/etc/shadowsocks.json is different from the conffile in the new package. The new conffile will be placed at /opt/etc/shadowsocks.json-opkg.
+Installing chinadns (1.3.2-20150812-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/chinadns_1.3.2-20150812-1_armv7soft.ipk
+Collected errors:
+ * resolve_conffiles: Existing conffile /opt/etc/chinadns_chnroute.txt is different from the conffile in the new package. The new conffile will be placed at /opt/etc/chinadns_chnroute.txt-opkg.
+Configuring chinadns.
+Installing dnscrypt-proxy (1.9.5-2) to root...
+Downloading http://pkg.entware.net/binaries/armv7/dnscrypt-proxy_1.9.5-2_armv7soft.ipk
+Installing dnscrypt-proxy-resolvers (1.9.5+git-20161129-f17bace-2) to root...
+Downloading http://pkg.entware.net/binaries/armv7/dnscrypt-proxy-resolvers_1.9.5+git-20161129-f17bace-2_armv7soft.ipk
+By default, dnscrypt-proxy will use the OpenDNS dnscrypt server.
+You may choose another one if you wish:
+1) adguard-dns-family-ns1 (Adguard DNS Family Protection 1)
+2) adguard-dns-family-ns2 (Adguard DNS Family Protection 2)
+3) adguard-dns-ns1 (Adguard DNS 1)
+4) adguard-dns-ns2 (Adguard DNS 2)
+5) cisco (Cisco OpenDNS)
+6) cisco-familyshield (Cisco OpenDNS with FamilyShield)
+7) cisco-ipv6 (Cisco OpenDNS over IPv6)
+8) cisco-port53 (Cisco OpenDNS backward compatibility port 53)
+9) cloudns-syd (CloudNS Sydney)
+10) cs-cfi (CS cryptofree France DNSCrypt server)
+11) cs-cfii (CS secondary cryptofree France DNSCrypt server)
+12) cs-ch (CS Switzerland DNSCrypt server)
+13) cs-de (CS Germany DNSCrypt server)
+14) cs-fr2 (CS secondary France DNSCrypt server)
+15) cs-rome (CS Italy DNSCrypt server)
+16) cs-useast (CS New York City NY US DNSCrypt server)
+17) cs-usnorth (CS Chicago IL US DNSCrypt server)
+18) cs-ussouth (CS Dallas TX US DNSCrypt server)
+19) cs-ussouth2 (CS Atlanta GA US DNSCrypt server)
+20) cs-uswest (CS Seattle WA US DNSCrypt server)
+21) cs-uswest2 (CS Las Vegas NV US DNSCrypt server)
+22) d0wn-au-ns1 (D0wn Resolver Australia 01)
+23) d0wn-bg-ns1 (D0wn Resolver Bulgaria 01)
+24) d0wn-cy-ns1 (D0wn Resolver Cyprus 01)
+25) d0wn-de-ns1 (D0wn Resolver Germany 01)
+26) d0wn-fr-ns2 (D0wn Resolver France 02)
+27) d0wn-es-ns1 (D0wn Resolver Spain 01- d0wn)
+28) d0wn-gr-ns1 (D0wn Resolver Greece 01)
+29) d0wn-hk-ns1 (D0wn Resolver Hong Kong 01)
+30) d0wn-is-ns1 (D0wn Resolver Iceland 01)
+31) d0wn-lu-ns1 (D0wn Resolver Luxembourg 01)
+32) d0wn-lu-ns1-ipv6 (D0wn Resolver Luxembourg 01 over IPv6)
+33) d0wn-lv-ns1 (D0wn Resolver Latvia 01)
+34) d0wn-lv-ns2 (D0wn Resolver Latvia 02)
+35) d0wn-lv-ns2-ipv6 (D0wn Resolver Latvia 01 over IPv6)
+36) d0wn-nl-ns3 (D0wn Resolver Netherlands 03)
+37) d0wn-nl-ns3-ipv6 (D0wn Resolver Netherlands 03 over IPv6)
+38) d0wn-random-ns1 (D0wn Resolver Moldova 01)
+39) d0wn-random-ns2 (D0wn Resolver Netherlands 02)
+40) d0wn-ro-ns1 (D0wn Resolver Romania 01)
+41) d0wn-ro-ns1-ipv6 (D0wn Resolver Romania 01 over IPv6)
+42) d0wn-ru-ns1 (D0wn Resolver Russia 01)
+43) d0wn-se-ns1 (D0wn Resolver Sweden 01)
+44) d0wn-se-ns1-ipv6 (D0wn Resolver Sweden 01 over IPv6)
+45) d0wn-sg-ns1 (D0wn Resolver Singapore 01)
+46) d0wn-sg-ns2 (D0wn Resolver Singapore 02)
+47) d0wn-sg-ns2-ipv6 (D0wn Resolver Singapore 01 over IPv6)
+48) d0wn-tz-ns1 (D0wn Resolver Tanzania 01)
+49) d0wn-ua-ns1 (D0wn Resolver Ukraine 01)
+50) d0wn-ua-ns1-ipv6 (D0wn Resolver Ukraine 01 over IPv6)
+51) d0wn-uk-ns1 (D0wn Resolver United Kingdom 01)
+52) d0wn-uk-ns1-ipv6 (D0wn Resolver United Kingdom 01 over IPv6)
+53) d0wn-us-ns1 (D0wn Resolver United States of America 01)
+54) d0wn-us-ns1-ipv6 (D0wn Resolver United States of America 01 over IPv6)
+55) d0wn-us-ns2 (D0wn Resolver United States of America 02)
+56) d0wn-us-ns2-ipv6 (D0wn Resolver United States of America 02 over IPv6)
+57) dnscrypt.eu-dk (DNSCrypt.eu Denmark)
+58) dnscrypt.eu-dk-ipv6 (DNSCrypt.eu Denmark over IPv6)
+59) dnscrypt.eu-nl (DNSCrypt.eu Holland)
+60) dnscrypt.org-fr (DNSCrypt.org France)
+61) dyne.org (Dyne.org Server)
+62) fvz-anyone (Primary OpenNIC Anycast DNS Resolver)
+63) fvz-anyone-ipv6 (Primary OpenNIC Anycast DNS IPv6 Resolver)
+64) fvz-anytwo (Secondary OpenNIC Anycast DNS Resolver)
+65) fvz-anytwo-ipv6 (Secondary OpenNIC Anycast DNS IPv6 Resolver)
+66) ipredator (Ipredator.se Server)
+67) ns0.dnscrypt.is ("ns0.dnscrypt.is in Reykjavík)
+68) okturtles (okTurtles)
+69) opennic-tumabox (TumaBox)
+70) ovpnse (OVPN.se Integritet AB)
+71) soltysiak (Soltysiak)
+72) soltysiak-ipv6 (Soltysiak over IPv6)
+73) ventricle.us (Anatomical DNS)
+74) yandex (Yandex)
+Configuring dnscrypt-proxy-resolvers.
+Configuring dnscrypt-proxy.
+skip install iptables
+`"local_address":"192.168.50.1",' is replaced with `"local_address":"192.168.50.1",' for /opt/etc/shadowsocks.json
+`UPSTREAM_PORT' is replaced with `5356' for /opt/etc/dnsmasq.d/foreign_domains.conf
+`5353' is replaced with `5356 -b 127.0.0.1 -s 114.114.114.114,127.0.0.1:65053' for /opt/etc/init.d/S56chinadns
+`ss-local' is replaced with `ss-redir' for /opt/etc/init.d/S22shadowsocks
+ Checking chinadns...              dead. 
+ Checking ss-redir...              dead. 
+ Checking dnscrypt-proxy...              dead. 
+ Checking haveged...              alive. 
+ Shutting down haveged...              done. 
+ Starting haveged...              done. 
+ Starting dnscrypt-proxy...              done. 
+ Starting ss-redir...              done. 
+ Starting chinadns...              done. 
+dnsmasq: syntax check OK.
+ Shutting down chinadns...              done. 
+ Starting chinadns...              done. 
+ Shutting down dnscrypt-proxy...              done. 
+ Starting dnscrypt-proxy...              done. 
+Applying iptables rule, it may take several minute to finish ...
+ipset v6.32: Element cannot be added to the set: it's already added
+iptables: Chain already exists.
+ss-redir not enable udp redir!
+```
+
 
 ## 手动部署
 
@@ -379,6 +557,8 @@ __如果部署出现问题，可以选择以下步骤进行恢复:__
 [asuswrt-merlin](https://github.com/RMerl/asuswrt-merlin)
 
 [Entware-ng](https://github.com/Entware-ng/Entware-ng)
+
+[dnscrypt-wrapper](https://github.com/cofyc/dnscrypt-wrapper)
 
 ## 其他
 
