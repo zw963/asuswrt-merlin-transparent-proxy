@@ -164,9 +164,176 @@ $ ./ss+udprelay admin@192.168.50.1
 等待完成, 如果无法翻墙, 按照以下方式尝试
 
 - 断掉 WiFi 尝试再连接, 试试
-- 重启路由器, 试试.
+- 如果 VPS 线路比较差, 等几分钟再试下, 是一个不错的建议.
+- 重启路由器, 等启动完成后, 再试试.
 
 如果还上不了, 可能部署或配置文件出了问题.
+
+下面是 ss+chinadns 安装成功输出示例:
+
+```
+╰─ $ ./ss+chinadns admin@192.168.50.1
+rsync is not installed in remote host, fallback to use scp command.
+foreign_domains.conf                                                                                                                                        100%   34    13.8KB/s   00:00    
+iptables.sh                                                                                                                                                 100% 4496     1.5MB/s   00:00    
+iptables_disable.sh                                                                                                                                         100%  358   147.3KB/s   00:00    
+patch_dnsmasq                                                                                                                                               100%  389   161.4KB/s   00:00    
+restart_dnsmasq                                                                                                                                             100%   84    21.8KB/s   00:00    
+shadowsocks.json                                                                                                                                            100%  195    80.3KB/s   00:00    
+S22ss-tunnel                                                                                                                                                100%  261   100.0KB/s   00:00    
+localips                                                                                                                                                    100%  265   114.4KB/s   00:00    
+update_ip_whitelist                                                                                                                                         100%  488   191.0KB/s   00:00    
+chinadns_chnroute.txt                                                                                                                                       100%  121KB   3.6MB/s   00:00    
+remote host missing bash, try to install it...
+Installing bash (4.3.42-1a) to root...
+Downloading http://pkg.entware.net/binaries/armv7/bash_4.3.42-1a_armv7soft.ipk
+Installing libncurses (6.0-1c) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libncurses_6.0-1c_armv7soft.ipk
+Installing libncursesw (6.0-1c) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libncursesw_6.0-1c_armv7soft.ipk
+Configuring libncursesw.
+Configuring libncurses.
+Configuring bash.
+***********************************************************
+Remote deploy scripts is started !!
+***********************************************************
+Downloading http://pkg.entware.net/binaries/armv7/Packages.gz
+Updated list of available packages in /opt/var/opkg-lists/packages
+Package libc (2.23-6) installed in root is up to date.
+Package libssp (6.3.0-6) installed in root is up to date.
+Installing libev (4.22-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libev_4.22-1_armv7soft.ipk
+Installing libmbedtls (2.4.2-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libmbedtls_2.4.2-1_armv7soft.ipk
+Installing libpcre (8.40-2) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libpcre_8.40-2_armv7soft.ipk
+Package libpthread (2.23-6) installed in root is up to date.
+Installing libsodium (1.0.12-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libsodium_1.0.12-1_armv7soft.ipk
+Installing haveged (1.9.1-5) to root...
+Downloading http://pkg.entware.net/binaries/armv7/haveged_1.9.1-5_armv7soft.ipk
+Installing libhavege (1.9.1-5) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libhavege_1.9.1-5_armv7soft.ipk
+Installing zlib (1.2.11-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/zlib_1.2.11-1_armv7soft.ipk
+Installing libopenssl (1.0.2k-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libopenssl_1.0.2k-1_armv7soft.ipk
+Configuring libev.
+Configuring libpcre.
+Configuring libmbedtls.
+Configuring libsodium.
+Configuring libhavege.
+Configuring haveged.
+Configuring zlib.
+Configuring libopenssl.
+Installing shadowsocks-libev (3.0.6-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/shadowsocks-libev_3.0.6-1_armv7soft.ipk
+Installing libudns (0.4-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libudns_0.4-1_armv7soft.ipk
+Collected errors:
+ * resolve_conffiles: Existing conffile /opt/etc/shadowsocks.json is different from the conffile in the new package. The new conffile will be placed at /opt/etc/shadowsocks.json-opkg.
+Configuring libudns.
+Configuring shadowsocks-libev.
+Installing chinadns (1.3.2-20150812-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/chinadns_1.3.2-20150812-1_armv7soft.ipk
+Collected errors:
+ * resolve_conffiles: Existing conffile /opt/etc/chinadns_chnroute.txt is different from the conffile in the new package. The new conffile will be placed at /opt/etc/chinadns_chnroute.txt-opkg.
+Configuring chinadns.
+skip install iptables
+`"local_address":"192.168.50.1",' is replaced with `"local_address":"192.168.50.1",' for /opt/etc/shadowsocks.json
+`UPSTREAM_PORT' is replaced with `5356' for /opt/etc/dnsmasq.d/foreign_domains.conf
+`5353' is replaced with `5356 -b 127.0.0.1 -s 114.114.114.114,127.0.0.1:1082,8.8.4.4' for /opt/etc/init.d/S56chinadns
+`ss-local' is replaced with `ss-redir' for /opt/etc/init.d/S22shadowsocks
+ Checking chinadns...              dead. 
+ Checking ss-tunnel...              dead. 
+ Checking ss-redir...              dead. 
+ Checking haveged...              dead. 
+ Starting haveged...              done. 
+ Starting ss-redir...              done. 
+ Starting ss-tunnel...              done. 
+ Starting chinadns...              done. 
+dnsmasq: syntax check OK.
+Applying iptables rule ...
+ss-redir not enable udp redir!
+```
+
+下面是 ss+udprelay 安装成功示例:
+
+```
+╰─ $ ./ss+udprelay admin@192.168.50.1
+rsync is not installed in remote host, fallback to use scp command.
+foreign_domains.conf                                                                                                                                        100%   34    13.9KB/s   00:00    
+iptables.sh                                                                                                                                                 100% 4534     1.3MB/s   00:00    
+iptables_disable.sh                                                                                                                                         100%  358   141.2KB/s   00:00    
+patch_dnsmasq                                                                                                                                               100%  389   155.5KB/s   00:00    
+restart_dnsmasq                                                                                                                                             100%   84    36.6KB/s   00:00    
+shadowsocks.json                                                                                                                                            100%  195    68.1KB/s   00:00    
+localips                                                                                                                                                    100%  265   109.0KB/s   00:00    
+update_ip_whitelist                                                                                                                                         100%  488   179.2KB/s   00:00    
+chinadns_chnroute.txt                                                                                                                                       100%  121KB 923.1KB/s   00:00    
+remote host missing bash, try to install it...
+Installing bash (4.3.42-1a) to root...
+Downloading http://pkg.entware.net/binaries/armv7/bash_4.3.42-1a_armv7soft.ipk
+Installing libncurses (6.0-1c) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libncurses_6.0-1c_armv7soft.ipk
+Installing libncursesw (6.0-1c) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libncursesw_6.0-1c_armv7soft.ipk
+Configuring libncursesw.
+Configuring libncurses.
+Configuring bash.
+***********************************************************
+Remote deploy scripts is started !!
+***********************************************************
+Downloading http://pkg.entware.net/binaries/armv7/Packages.gz
+Updated list of available packages in /opt/var/opkg-lists/packages
+Package libc (2.23-6) installed in root is up to date.
+Package libssp (6.3.0-6) installed in root is up to date.
+Installing libev (4.22-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libev_4.22-1_armv7soft.ipk
+Installing libmbedtls (2.4.2-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libmbedtls_2.4.2-1_armv7soft.ipk
+Installing libpcre (8.40-2) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libpcre_8.40-2_armv7soft.ipk
+Package libpthread (2.23-6) installed in root is up to date.
+Installing libsodium (1.0.12-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libsodium_1.0.12-1_armv7soft.ipk
+Installing haveged (1.9.1-5) to root...
+Downloading http://pkg.entware.net/binaries/armv7/haveged_1.9.1-5_armv7soft.ipk
+Installing libhavege (1.9.1-5) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libhavege_1.9.1-5_armv7soft.ipk
+Installing zlib (1.2.11-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/zlib_1.2.11-1_armv7soft.ipk
+Installing libopenssl (1.0.2k-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libopenssl_1.0.2k-1_armv7soft.ipk
+Configuring libev.
+Configuring libpcre.
+Configuring libmbedtls.
+Configuring libsodium.
+Configuring libhavege.
+Configuring haveged.
+Configuring zlib.
+Configuring libopenssl.
+Installing shadowsocks-libev (3.0.6-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/shadowsocks-libev_3.0.6-1_armv7soft.ipk
+Installing libudns (0.4-1) to root...
+Downloading http://pkg.entware.net/binaries/armv7/libudns_0.4-1_armv7soft.ipk
+Collected errors:
+ * resolve_conffiles: Existing conffile /opt/etc/shadowsocks.json is different from the conffile in the new package. The new conffile will be placed at /opt/etc/shadowsocks.json-opkg.
+Configuring libudns.
+Configuring shadowsocks-libev.
+skip install iptables
+`"local_address":"192.168.50.1",' is replaced with `"local_address":"192.168.50.1",' for /opt/etc/shadowsocks.json
+`127.0.0.1#UPSTREAM_PORT' is replaced with `8.8.8.8#53' for /opt/etc/dnsmasq.d/foreign_domains.conf
+`ARGS="-c /opt/etc/shadowsocks.json"' is replaced with `ARGS="-u -c \/opt\/etc\/shadowsocks.json"' for /opt/etc/init.d/S22shadowsocks
+`ss-local' is replaced with `ss-redir' for /opt/etc/init.d/S22shadowsocks
+ Checking ss-redir...              dead. 
+ Checking haveged...              dead. 
+ Starting haveged...              done. 
+ Starting ss-redir...              done. 
+dnsmasq: syntax check OK.
+Applying iptables rule, it may take several minute to finish ...
+```
+
 
 ## 手动部署
 
