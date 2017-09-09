@@ -75,7 +75,6 @@ fi
 iptables -t mangle -N SHADOWSOCKS_UDP
 iptables -t mangle -N SHADOWSOCKS_MARK
 
-ip route flush table 100
 ip rule add fwmark 1 lookup 100
 ip route add local default dev lo table 100
 
