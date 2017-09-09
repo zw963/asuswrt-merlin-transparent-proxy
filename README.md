@@ -1,47 +1,36 @@
 # 使用华硕 merlin 架设透明代理
 
-__Updated on 2017/08/25__
+__Updated on 2017/09/08__
 
-- 升级 ss-redir ss-tunnel 到最新的 3.0.6, 仍旧支持老版本.
-- 固件版本首选: 380.68+, 因为最新的 ARM 架构的梅林(ac68U,ac88U,ac87u,ac5300 等)全线启用了 tproxy 模块.
-  据本人测试, 看 Youtube 等视频性能好很多.
-- opkg 版本: 0.1.8.
-- 如果从老的版本升级, 首选格式化 jffs 分区, 重启后重新部署.
-
--------------------
+## 目的
+使用目前流行的 IP白名单 方式，通过维护一份国内 IP 的列表, 实现自动翻墙的透明代理, 为合理的科学上网提供便利.
 
 本文基于网络上大量资料整理，恕在此不一一列举，没有大量网友的无私分享，就不会有这个文章。
 
-本部署脚本原始基于华硕(ASUS) RT-AC66U MIPS 架构的路由器编写, 也在 RT-AC87U, RT-5300 架构上实测成功.
-本文章的部署策略通过修改应该也适用于 OpenWRT 及其他系统, 思路是一样的。
+本部署脚本原始基于华硕(ASUS) RT-AC66U, RT-AC87U, RT-5300 架构上实测成功, 应该适合于任何支持 Entware 包管理的
+Merlin 或 OpenWRT 系统, 思路是一样的。
 
-注意:
+## 需求
+- 使用 ss+udprelay 部署, 要求梅林固件版本不低于: 380.68+, (需要 tproxy 支持)
+- opkg 路由器包管理系统, [Entware-ng](https://github.com/Entware-ng/Entware-ng)
+- ss-redir
+- 一台能够使用 ssh 登陆梅林的 Linux 宿主机(母鸡), Window 下请首先安装虚拟机.
+- 一定的 CLI 操作能力.
 
-1. 本文的目的是为: 合理科学上网提供便利.
-2. 本文完全基于命令行操作，无任何 GUI 支持, 你需要具备一定的 CLI 操作能力，以及开启 SSH 自动登陆 (见下述)
-3. 请刷官方版的 [asuswrt-merlin](https://asuswrt.lostrealm.ca), 原始开发基于的版本为 Firmware:380.59, 请不要低于这个版本.
-4. 自动安装脚本需要 ssh 支持，如果你的操作主机是 Linux 或 Mac，应该完全没问题, 如果是 Windows，请百度自行解决。
-
-## 目的
-使用目前最流行的白名单方式，通过维护一份国内网站域名列表[dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list),
-实现国内域名跳过, 国外域名自动翻墙的代理
-
-
-## 使用本脚本部署的前置条件
-### 升级你的路由器最新版本的 [asuswrt-merlin](https://asuswrt.lostrealm.ca)
+## 启用路由器的包管理系统 Entware-ng
 
 ### 寻找一个 U 盘, 容量不限, 格式化这个 U 盘到 ext3 分区.
-具体操作, Window 下请百度自行解决.
 
-Linux 下, 假设你的 U 盘驱动器设备为 /dev/sdd1
+假设你的 U 盘驱动器在 Linux 的设备为 /dev/sdd1
 
 ```sh
 # mkfs.ext3 /dev/sdd1
 ```
 
-__注意!! 以上操作需谨慎, 盘符一定搞对, 等价于 Window 下的格式化操作, 本文不对因用户不了解造成的任何数据丢失, 承担责任!__
+__注意!! 以上操作需谨慎, 设备一定搞对, 因为这是格式化操作, 本文不对因用户不了解, 造成的任何数据丢失, 承担责任!__
 
-### 初始化 jffs. 
+### 初始化 jffs.
+
 将 U 盘插入到路由器 U 口上, 然后登陆路由器, 按照以下提示操作:
 
 1. 系统管理 => 系统设置
@@ -81,24 +70,17 @@ admin@RT-AC66U-20F0:/tmp/mnt/sda/asusware/etc# entware-setup.sh
 [0-1]: 
 ```
 
-此时选择 1 即可, 等待 opkg 包管理安装完成后, `exit` 退出路由器.
+此时选择 1 即可, 等待安装完成.
 
-提示: __如果因为各种原因, 之后有任何步骤执行失败, 可以重复执行本步骤, 再次部署, 注意每次初始化后, 需要手动点击重启路由器.__
+如果运行 `opkg --version`, 返回对应的版本信息, 表示安装成功, `exit` 退出路由器.
 
+## 开始一键部署.
 
-## 使用本脚本一键部署
+__请注意: 下面的步骤是在你的宿主机( Linux 工作电脑上)上操作, 而不是在你的路由器上.__ 
 
-__请注意: 下面的步骤是在你的本地主机上操作, 而不是在你的路由器上.__ 
+### 下载本项目到你的工作电脑上
 
-### clone 项目到你的本地
-
-这里以克隆项目到你的 $HOME 下为例:
-
-```sh
-$: git clone git@github.com:zw963/asuswrt-merlin-transparent-proxy.git ~/asuswrt-merlin-transparent-proxy-master
-```
-
-不会用 Git 的同学, 可以从 [这个地址](https://github.com/zw963/asuswrt-merlin-transparent-proxy/archive/master.zip) 下载,
+下载 [链接](https://github.com/zw963/asuswrt-merlin-transparent-proxy/archive/master.zip).
 如果你使用 mac 或 linux, 使用下面的 curl 命令就足够了.
 
 ```sh
@@ -137,14 +119,13 @@ ee43fd6ad2aa2e890b7f792c309fa5e270442676
 $ cd ~/asuswrt-merlin-transparent-proxy-master
 ```
 
-创建连接到墙外的跳板服务器的 shadowsocks.json 脚本. (可能是自己的 VPS 或 第三方收费 VPN)
+创建 shadowsocks 配置文件 route/opt/etc/shadowsocks.json 脚本.
 
 ```sh
 $ touch route/opt/etc/shadowsocks.json
 ```
 
-使用编辑器打开 shadowsocks.json, 内容示例如下, 具体内容请自行百度解决或向你的 VPN 提供商咨询.
-如何在自己的 VPS 上部署 SS, 请参阅相关文章, 在此不再赘述.
+使用编辑器打开 shadowsocks.json, 内容示例如下.
 
 ```json
 // 这只是一个例子, 如果你要复制修改, 麻烦先手动删除所有 // 开头的注释!
@@ -159,36 +140,41 @@ $ touch route/opt/etc/shadowsocks.json
 }
 ```
 
-### 运行一键部署脚本自动部署. 
+### 运行一键部署脚本自动部署.
 
-此时，在你的电脑上应该已经可以自动 ssh 登陆到你的路由器, 假设路由器 ip 地址是 192.168.1.1, 则在你的 `宿主电脑上` 执行以下命令.
+此时有两个选择:
+
+- ss+chinadns, 较好的兼容国内网站, 省流量, 但是某些运营商线路, 访问某些国外网站可能会比较慢,
+  这是因为大部分没有被墙的网站走的是直连, 首选, 老的 MIPS 架构路由器也可用.
+- ss+udprelay (仅 ARM 架构支持), 只需要 ss-redir 一个命令自己全部搞定, 如果你有很好的国外线路, 可以尝试这个. 
+
+此时，在你的电脑上应该已经可以自动 ssh 登陆到你的路由器,
+假设路由器 ip 地址是 192.168.50.1 (或域名 router.asus.com), 则在你的 `宿主电脑上` 执行以下命令.
 
 ```sh
-$ ./ss+dnsmasq admin@192.168.1.1
+$ ./ss+chinadns admin@192.168.50.1
 ```
 
 或
 
 ```sh
-$ ./ss+dnsmasq+chinadns admin@192.168.1.1
+$ ./ss+udprelay admin@192.168.50.1
 ```
 
-后者额外使用了 chinadns, 遇到国内部分网站访问异常, 可以选择这个.
+等待完成, 如果无法翻墙, 按照以下方式尝试
 
-脚本如果执行未出错，最后会看到 ``貌似部署成功了!`` 字样, 可以断掉 WiFi 再连接后, 试下是否正常.
+- 断掉 WiFi 尝试再连接, 试试
+- 重启路由器, 试试.
 
-部署成功后, 请耐心等待重启, 部署后比未部署时, 启动时间要长一些(重启大概需要两分钟), 这是正常的, 请耐心等待, 但是访问
-速度没有任何影响, 事实上, 通过路由 FQ 比在本机或浏览器做代理, 性能好很多.
+如果还上不了, 可能部署或配置文件出了问题.
 
 ## 手动部署
 
 如果你不想配置 SSH 自动登录, 又对这个脚本做了什么不太放心, 你可以选择手动部署.
 
-1. 请首先尝试读懂 [部署脚本](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss+dnsmasq) 中的命令在干什么.
-2. 将 route/ 目录下的文件, 就按照同样的目录结构, 使用 scp 复制到你的路由器.
-3. [部署脚本](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss+dnsmasq) 中, ``deploy_start`` 这行之后的内容
-其实都在路由器中执行, 你可以研究下该命令在做什么, 然后自己通过 `ssh admin@192.168.1.1` 输入 login 密码登录后,
-自己手动键入所需的命令, 一步一步来完成它.
+1. 请首先尝试读懂部署脚本中的命令在干什么.
+2. 使用 ssh 登录路由器.
+2. 自己手动在路由器的命令行下键入命令. (脚本中, ``deploy_start`` 之后的命令, 都是在路由器上执行.)
 
 ## 如何知道我部署成功了?
 
@@ -206,54 +192,16 @@ $ ./ss+dnsmasq+chinadns admin@192.168.1.1
 
 __如果部署出现问题，可以选择以下步骤进行恢复:__
 
-1. 请拔掉 U 盘后重启路由器, 路由器应该会恢复为未翻墙的状态, 通过 ssh 连入, 查看 jffs 下是否有脚本编写错误.
-2. 如果以上步骤无效, 按下蓝色网线口旁边的那个小洞中的初始化按钮,保持不放(你可能需要借助于牙签之类的物件来操作),
-看到电源的小蓝灯开始有规律的闪烁, 放开手, 此时会看到蓝色的灯在不断的发生变化, 待变化稳定之后,
-路由器已被还原到出厂设置, 重新连接到路由器, 重新部署即可.
-
+1. 请拔掉 U 盘后, 重启路由器, 如果可以进入管理界面, 格式化 jffs 分区重来.
+2. 点按路由器的重置按钮(按住不放几秒钟), 重置整个路由器.
 
 ## 基本思路
 
-1. 路由器启动 ss-redir, 连接远程 ss-server, 并监听 1080 端口.
-2. 路由器启动 ChinaDNS, 监听 5356 端口. (可选)
-3. 使用 [dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list) 项目中提供的(accelerated-domains.china.conf) 作为 DNS 白名单。
-   所有在白名单中的域名, 跳过代理, 剩下的通过代理访问, 可参阅 foreign_domains.conf.
-4. 对 accelerated-domains.china.conf 进行批量替换，生成和白名单条目一一对应的 accelerated-domains-ipset.china.conf 文件.
-5. 访问一个网址时, 如果域名在这个白名单中，dnsmasq 会将这些国内的域名 IP 加入一个叫做 FREEWEB 的 ipset, 这些是我们可以自由访问的 IP.
-6. iptables 中指定，如果访问的 IP 属于 FREEWEB , 则跳过代理直接放行，否则，将流量转发到 ss-redir.(1080端口)
-6. iptables 中指定，如果访问的 IP 是本地 IP, 也是直接放行.
-
-一些更加具体的设定问题，请查看这个 issue 中的讨论. https://github.com/onlyice/asus-merlin-cross-the-gfw/issues/5#issuecomment-234708422
-
-## 相比较其他方案的优缺点
-
-### 优点
-1. 采用 ``域名白名单`` 机制，相比较黑名单机制来说, 周期性变动不大，并且由 [dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list) 维护，方便更新。
-2. 省略了在 iptables 中加入大量国内的 IP 段，常常难以维护, 因为我们已经有域名白名单了，当访问白名单中的网站时，dnsmasq 会帮我们维护这个列表。
-
-### 缺点
-dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，又加了 3W 多条 ipset 策略, 总共 7W 条规则让 dnsmasq 负载变重。
-因此路由器启动时, 会稍稍变慢, 不过在使用时, 在我的 rt-ac66u 之上，看起来完全没有影响, 看 youtube, cpu 基本上小于 4%, 内存稳定在 10m 左右,
-没什么瓶颈，就是不知道 dnsmasq 支持的条数是否存在上限 ...
+看 [这个](https://github.com/shadowsocks/shadowsocks-libev/issues/1666) issue.
 
 ## 感谢
-本文受到了大量网友文章的启发，并综合了各种信息，加以整理而成，无法一一感谢，仅列取最近部分的一些连接。
 
-[使用 Asus Merlin 实现路由器翻墙](https://github.com/onlyice/asus-merlin-cross-the-gfw/blob/master/README.md)
-
-[使用ipset让openwrt上的shadowsocks更智能的重定向流量](https://hong.im/2014/07/08/use-ipset-with-shadowsocks-on-openwrt/)
-
-[利用ipset进行选择性的翻墙](https://opensiglud.blogspot.hk/2014/10/ipset.html)
-
-[shadowsocks-libev README 文档](https://github.com/shadowsocks/shadowsocks-libev)
-
-[如何在路由器中实现透明代理？](https://gist.github.com/snakevil/8a34d6fbdf2a64f2c753)
-
-[ss-redir 的 iptables 配置(透明代理)](https://gist.github.com/wen-long/8644243)
-
-[搭建智能翻墙路由器](http://hbprotoss.github.io/posts/da-jian-zhi-neng-fan-qiang-lu-you-qi.html)
-
-感谢以下 Wonderful 项目的不断努力，才让我们探索自由，科学上网的愿望变为现实。
+感谢以下项目的不断努力，才让我们探索自由，科学上网的愿望变为现实。
 
 [Shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev)
 
@@ -269,7 +217,7 @@ dnsmasq-china-list 的白名单已经有 3W 多条了，因为 ipset 缘故，�
 
 新增最新版(v3.0.6)的 shadowsocks-libev 服务器端部署脚本, 方便不会在服务器上配置 ss 的朋友.
 
-未充分测试, 但是应该在 Centos 7, 较新版本的 openSUSE 与 Ubuntu 16.04 下完美工作.
+应该在 Centos 7 与 Ubuntu 16.04 下完美工作.
 这个版本的 shadowsocks-libev 依赖 mbedtls, Ubuntu 14.04 没有提供这个包, 因此不再考虑之列.
 
 操作步骤如下:
@@ -290,5 +238,3 @@ $: rpm -ivh http://download.fedoraproject.org/pub/epel/epel-release-latest-7.noa
 然后重新运行部署脚本.
 
 有问题, 提 issue, 会不定期解决.
-
-[使用华硕 merlin 架设离线下载服务器](https://github.com/zw963/asuswrt-merlin-offline-download)
