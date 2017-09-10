@@ -26,18 +26,18 @@ localips=$(cat /opt/etc/localips)
 # 默认值 hashsize 1024 maxelem 65536, 已经足够了.
 if ipset -N CHINAIPS hash:net; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
-    for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
-        ipset add CHINAIPS $ip
+    for ip in "$(cat /opt/etc/chinadns_chnroute.txt)"; do
+        ipset add CHINAIPS "$ip"
     done
 fi
 
 # 应用 ip 白名单.
+# 格式示例:
+# 81.4.123.217 # entware 的地址 (注释可选)
+
 if [ -e /opt/etc/user_ip_whitelist.txt ]; then
-    for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
-        if echo $ip | grep -qs '^#'; then
-            continue
-        fi
-        ipset add CHINAIPS $ip
+    for ip in "$(cat /opt/etc/user_ip_whitelist.txt)"; do
+        ipset add CHINAIPS "$ip"
     done
 fi
 
