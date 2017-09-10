@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# run following to reset route
+
+# ssh admin@192.168.50.1 <<< "$(cat init_route)" to reset router
+# ssh admin@192.168.50.1 reboot
+
 [ -e /opt/etc/iptables_disable.sh ] && sh /opt/etc/iptables_disable.sh
 
 date=$(date '+%Y-%m-%d_%H-%M-%S')
