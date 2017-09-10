@@ -108,7 +108,7 @@ set -e
 /jffs/scripts/services-start
 
 # 每隔 1 分钟检测下所有的服务是否运行.
-add_service services-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
+add_service nat-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
 echo '貌似部署成功了!'
 echo
