@@ -21,6 +21,13 @@ fi
 if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
     source /opt/etc/dnscrypt-proxy.sh
     set -u
-    sed -i "s#^ARGS=.*#ARGS=\"-T -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key}\"#" /opt/etc/init.d/S09dnscrypt-proxy
+
+    if cat /opt/etc/dnsmasq.d/foreign_domains.conf  |grep '65053'; then
+        dnscrypt_udp_only="-T"
+    else
+        dnscrypt_udp_only=""
+    fi
+
+    sed -i "s#^ARGS=.*#ARGS=\"$dnscrypt_udp_only -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key}\"#" /opt/etc/init.d/S09dnscrypt-proxy
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
