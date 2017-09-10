@@ -93,10 +93,15 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 #
 # ---------------------------------------------------
 
-# 在分区加载之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
-chmod +x /opt/etc/patch_dnsmasq && add_service post-mount '/opt/etc/patch_dnsmasq'
+# 在分区加载之后, 启动任何服务之前, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
+chmod +x /opt/etc/patch_dnsmasq &&
+    /opt/etc/patch_dnsmasq &&
+    add_service init-start '/opt/etc/patch_dnsmasq'
 # 在分区加载之后,  运行 iptables.sh
-chmod +x /opt/etc/iptables.sh && add_service post-mount '/opt/etc/iptables.sh'
+chmod +x /opt/etc/iptables.sh &&
+    /opt/etc/iptables.sh &&
+    add_service init-start '/opt/etc/iptables.sh'
+
 # 星期一的 3:25 分升级 IP 白名单.
 chmod +x /opt/etc/update_ip_whitelist && add_service services-start 'cru a run-services "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 # 每隔 1 分钟检测下所有的服务是否运行.
