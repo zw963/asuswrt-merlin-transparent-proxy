@@ -31,7 +31,7 @@ if ipset -N CHINAIPS hash:net; then
     done
 fi
 
-# 应用 ip 白名单. 81.4.123.217
+# 应用 ip 白名单.
 if [ -e /opt/etc/ip_whitelist.txt ]; then
     for i in $(cat /opt/etc/ip_whitelist.txt); do
         if echo "$i" | grep -qs '^#'; then
