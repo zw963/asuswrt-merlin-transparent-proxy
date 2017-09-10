@@ -33,7 +33,7 @@ fi
 
 # 应用 ip 白名单.
 if [ -e /opt/etc/user_ip_whitelist.txt ]; then
-    for i in $(cat /opt/etc/user_ip_whitelist.txt); do
+    for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
         if echo "$i" | grep -qs '^#'; then
             continue
         fi
