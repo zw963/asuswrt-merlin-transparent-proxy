@@ -8,7 +8,8 @@ This project is for config you asus router (based on merlin) to serve as a trans
 
 - A VPS server which can access outer world. (or service)
 - A router which can install merlin. (I think OpenWRT is the same after some user-defined)
-- Support opkg package manager to install needed software.
+- Support opkg package manager to install needed software in router. (Merlin is satisfied)
+- A local ssh client which can login to router.
 
 ## Feature
 
@@ -16,7 +17,7 @@ This project is for config you asus router (based on merlin) to serve as a trans
 [ss+chinadns+dnscrypt](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss%2Bchinadns%2Bdnscrypt)
 [ss+udprelay](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/master/ss%2Budprelay)
 
-For details, See [Wiki](https://github.com/zw963/asuswrt-merlin-transparent-proxy/wiki) link.
+For details, See Chinese [Wiki](https://github.com/zw963/asuswrt-merlin-transparent-proxy/wiki) link.
 
 ## Contributing
 
