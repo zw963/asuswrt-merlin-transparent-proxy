@@ -1,6 +1,6 @@
 #!/bin/sh
 
-[ -f /opt/etc/iptables.rules ] && iptables-restore < /opt/etc/iptables.rules
+[ -f /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
 
 ip route flush table 100
 ipset destroy CHINAIPS

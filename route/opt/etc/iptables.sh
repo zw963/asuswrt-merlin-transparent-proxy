@@ -3,7 +3,7 @@
 echo 'Applying iptables rule, it may take several minute to finish ...'
 
 # use /opt/etc/iptables_disable.sh to restore iptables
-[ -f /opt/etc/iptables.rules ] || iptables-save > /opt/etc/iptables.rules
+[ -f /tmp/iptables.rules ] || iptables-save > /tmp/iptables.rules
 
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
