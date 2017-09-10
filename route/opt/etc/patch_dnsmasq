@@ -20,6 +20,6 @@ fi
 if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
     source /opt/etc/dnscrypt-proxy.sh
     set -u
-    sed -i "s#^ARGS=.*#ARGS=\"-a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key}\"#" /opt/etc/init.d/S09dnscrypt-proxy
+    sed -i "s#^ARGS=.*#ARGS=\"-T -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key}\"#" /opt/etc/init.d/S09dnscrypt-proxy
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
