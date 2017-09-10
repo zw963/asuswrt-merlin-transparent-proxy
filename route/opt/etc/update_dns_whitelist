@@ -4,9 +4,9 @@ set -e
 
 wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak
 
-cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
-    sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |
-    sed "s|^\(server.*\)/[^/]*$|\1/#|" > /opt/etc/dnsmasq.d/accelerated-domains-ipset.china.conf
+# cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
+#     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |
+#     sed "s|^\(server.*\)/[^/]*$|\1/#|" > /opt/etc/dnsmasq.d/accelerated-domains-ipset.china.conf
 
 sh /opt/etc/patch_dnsmasq
 sh /opt/etc/restart_dnsmasq
