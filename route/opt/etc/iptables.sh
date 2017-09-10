@@ -71,7 +71,7 @@ if ! modprobe xt_TPROXY; then
 fi
 
 if ! cat /opt/etc/init.d/S22shadowsocks |grep '^ARGS=' |grep -qs -e '-u'; then
-    echo 'ss-redir not enable udp redir!'
+    echo 'ss-redir not enable udp redir, skip UDP rule.'
     exit 0
 fi
 
