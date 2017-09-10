@@ -11,6 +11,7 @@ if [ ! -e ./route/opt/etc/shadowsocks.json ];then
     exit
 fi
 
+copy route/opt/etc/dnscrypt-proxy.sh /opt/etc
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
 copy route/opt/etc/iptables_disable.sh /opt/etc
@@ -40,11 +41,6 @@ if ! opkg --version; then
     exit
 fi
 
-if ! modprobe xt_TPROXY; then
-    echo "Router not support udp relay, try use \`ss+chinadns' to deploy."
-    exit
-fi
-
 # 如果不存在 ipset (例如 AC66U), 首先安装 ipset4
 which ipset &>/dev/null || opkg install ipset4
 
@@ -60,6 +56,8 @@ if opkg find shadowsocks-libev |grep -qs -e '.*'; then
 elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
     opkg install shadowsocks-libev-ss-redir
 fi
+
+opkg install dnscrypt-proxy --nodeps
 # opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then
@@ -79,12 +77,9 @@ fi
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
-# 直接使用 8.8.8.8#53 查询 DNS, 目标地址会通过 ss-redir 转发到 ss-server 执行.
-replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
-
-# 开启 udp delay
-replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
-
+# 将 dnscrypt 作为 dnsmasq 的上游 DNS 服务器
+replace_string UPSTREAM_PORT 65053 /opt/etc/dnsmasq.d/foreign_domains.conf
+#
 # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 
