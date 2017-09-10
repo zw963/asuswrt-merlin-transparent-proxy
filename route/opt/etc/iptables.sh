@@ -34,7 +34,7 @@ fi
 # 应用 ip 白名单.
 if [ -e /opt/etc/user_ip_whitelist.txt ]; then
     for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
-        if echo "$i" | grep -qs '^#'; then
+        if echo $ip | grep -qs '^#'; then
             continue
         fi
         ipset add CHINAIPS $ip
