@@ -10,6 +10,8 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
     fi
     cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |sed "s#114\.114\.114\.114#${default_dns_ip}#" > /opt/etc/dnsmasq.d/accelerated-domains.china.conf
+    # 吧 pkg.entwawre.net 加到域名白名单, 避免域名挂的时候, 连 opkg 都无法用.
+    echo "server=/pkg.entware.net/${default_dns_ip}" >> /opt/etc/dnsmasq.d/accelerated-domains.china.conf
     dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 fi
 
