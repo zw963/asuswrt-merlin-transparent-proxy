@@ -1,7 +1,7 @@
 #!/bin/sh
 
 resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
-dnsip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
+default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
 
 if [ -d /opt/etc/dnsmasq.d ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
@@ -9,12 +9,12 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         cp /etc/dnsmasq.conf /etc/dnsmasq.conf.bak
         echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
     fi
-    cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |sed "s#114\.114\.114\.114#${dnsip}#" > /opt/etc/dnsmasq.d/accelerated-domains.china.conf
+    cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |sed "s#114\.114\.114\.114#${default_dns_ip}#" > /opt/etc/dnsmasq.d/accelerated-domains.china.conf
     dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 fi
 
 if [ -e /opt/etc/init.d/S56chinadns ]; then
-    sed -i "s#-s [0-9.]*,#-s ${dnsip},#" /opt/etc/init.d/S56chinadns
+    sed -i "s#-s [0-9.]*,#-s ${default_dns_ip},#" /opt/etc/init.d/S56chinadns
     /opt/etc/init.d/S56chinadns restart
 fi
 
