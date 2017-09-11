@@ -23,6 +23,7 @@ copy route/opt/etc/update_ip_whitelist /opt/etc
 copy route/opt/etc/chinadns_chnroute.txt /opt/etc
 
 [ -e route/opt/etc/user_ip_whitelist.txt ] && copy route/opt/etc/user_ip_whitelist.txt /opt/etc
+[ -e route/opt/etc/user_domain_name_whitelist.txt ] && copy route/opt/etc/user_domain_name_whitelist.txt /opt/etc
 
 deploy_start
 
