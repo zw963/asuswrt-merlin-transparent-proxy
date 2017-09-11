@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
+# 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
+if ! iptables -t nat -N SHADOWSOCKS_TCP; then
+    # 如果不成功, 表示已经执行过了, 直接退出.
+    # 经过测试, 梅林还是会经常删除自定义 iptables, 所以, 还是需要反复执行这个文件来确保有效.
+    exit
+fi
+
 echo 'Applying iptables rule, it may take several minute to finish ...'
 
 # use /opt/etc/iptables_disable.sh to restore iptables
@@ -49,10 +57,6 @@ local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':'
 local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
 
 # ====================== tcp rule =======================
-
-# iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
-# 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
-iptables -t nat -N SHADOWSOCKS_TCP
 
 # 为 SHADOWSOCKS_TCP chain 插入 rule.
 for i in $localips; do

@@ -92,7 +92,7 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 启动所需的脚本
 #
 # ---------------------------------------------------
-# 每隔 1 分钟检测下所有的服务是否运行.
+# 每隔 1 分钟检测下所有的服务是否运行, 以及应用 iptables (如果失效的话.)
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
 # 星期一的 3:25 分升级 IP 白名单.
@@ -113,11 +113,8 @@ fi
 
 chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh
 # 在所有服务启动之后, 运行 iptables.sh
-add_service services-start '
-if [ ! -f /tmp/iptables_is_run ];then
-    /opt/etc/iptables.sh && touch /tmp/iptables_is_run
-fi
-'
+add_service services-start '/opt/etc/iptables.sh'
+
 
 echo '貌似部署成功了!'
 echo
