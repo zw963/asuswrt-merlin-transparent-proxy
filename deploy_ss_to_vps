@@ -1,6 +1,6 @@
 #!/bin/sh
 
-self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.3/deploy_start.sh)" && eval "$self"
+self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.6/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -45,6 +45,10 @@ net.ipv4.tcp_rmem=4096 87380 67108864
 net.ipv4.tcp_wmem=4096 65536 67108864
 net.ipv4.tcp_mtu_probing=1
 net.ipv4.tcp_congestion_control=hybla
+
+# 开启内核 fastopen, Linux 3.7 以上支持, 3.13 才默认开启.
+# 等价于 echo 1 > /proc/sys/net/ipv4/tcp_fastopen
+net.ipv4.tcp_fastopen=1
 HEREDOC
 
 sysctl -p
@@ -57,7 +61,7 @@ cd shadowsocks-libev-3.0.8/ &&
     configure shadowsocks &&
     make &&
     make install-strip &&
-    daemon shadowsocks '/usr/bin/ss-server -u --fast-open -c /etc/shadowsocks/config.json'
+    daemon shadowsocks '/usr/bin/ss-server -u --fast-open -c /etc/shadowsocks/config.json -vvv'
 
 server_port=$(cat /etc/shadowsocks/config.json |grep 'server_port"' |grep -o '[0-9]*')
 expose_port $server_port
