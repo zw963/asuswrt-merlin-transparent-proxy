@@ -1,14 +1,16 @@
 #!/bin/sh
 
-[ -f /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
+if [ -x /opt/etc/iptables.sh ] && [ -f /opt/etc/dnsmasq.d/foreign_domains.conf ]; then
+    [ -f /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
 
-ip route flush table 100
-ipset destroy CHINAIPS
-
-echo '你可能还需要以下两步才可以生效:'
-
-echo '1. 检查 dnsmasq 中相关配置.'
-echo '2. chmod -x /opt/etc/iptables.sh, 避免被再次自动运行'
+    ip route flush table 100
+    ipset destroy CHINAIPS
+    mv /opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.bak
+else
+    mv /opt/etc/dnsmasq.d/foreign_domains.bak /opt/etc/dnsmasq.d/foreign_domains.conf
+    chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh
+    /opt/etc/restart_dnsmasq
+fi
 
 # iptables -t nat -D PREROUTING -p tcp -j SHADOWSOCKS
 # iptables -t nat -F SHADOWSOCKS             # flush
