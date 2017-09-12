@@ -5,7 +5,7 @@
 # ssh admin@192.168.50.1 <<< "$(cat init_route)" to reset router
 # ssh admin@192.168.50.1 reboot
 
-[ -e /opt/etc/iptables_disable.sh ] && sh /opt/etc/iptables_disable.sh
+[ -e /opt/etc/iptables_toggle.sh ] && sh /opt/etc/iptables_toggle.sh 1
 
 date=$(date '+%Y-%m-%d_%H-%M-%S')
 mv /tmp/mnt/sda1/entware /tmp/mnt/sda1/entware_bak_$date

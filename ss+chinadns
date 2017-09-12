@@ -13,7 +13,7 @@ fi
 
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
-copy route/opt/etc/iptables_disable.sh /opt/etc
+copy route/opt/etc/iptables_toggle.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
