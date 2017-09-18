@@ -18,10 +18,11 @@ if [ -d /opt/etc/dnsmasq.d ]; then
 
     cat $domain_config_bak |sed "s#114\.114\.114\.114#${default_dns_ip}#" > $domain_config
 
-    for i in $(cat /opt/etc/user_domain_name_whitelist.txt); do
-        echo "server=/${i}/${default_dns_ip}" >> $domain_config
-    done
-
+    if [ -f /opt/etc/user_domain_name_whitelist.txt ]; then
+        for i in $(cat /opt/etc/user_domain_name_whitelist.txt); do
+            echo "server=/${i}/${default_dns_ip}" >> $domain_config
+        done
+    fi
     dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 fi
 
