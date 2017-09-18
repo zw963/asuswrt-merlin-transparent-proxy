@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.6/deploy_start.sh)" && eval "$self"
 
