@@ -13,19 +13,20 @@ fi
 
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
-copy route/opt/etc/iptables_toggle.sh /opt/etc
+copy route/opt/etc/toggle_proxy.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/init.d/S22ss-tunnel /opt/etc/init.d
 copy route/opt/etc/localips /opt/etc
 copy route/opt/etc/update_ip_whitelist /opt/etc
-copy route/opt/etc/chinadns_chnroute.txt /opt/etc
 
 [ -e route/opt/etc/user_ip_whitelist.txt ] && copy route/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e route/opt/etc/user_domain_name_whitelist.txt ] && copy route/opt/etc/user_domain_name_whitelist.txt /opt/etc
 
 deploy_start
+
+/opt/etc/toggle_proxy.sh disable
 
 # ----------------------------------------------------
 #
@@ -79,7 +80,7 @@ fi
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
 # 将 chinadns 作为 dnsmasq 的上游 DNS 服务器
-replace_string UPSTREAM_PORT 5356 /opt/etc/dnsmasq.d/foreign_domains.conf
+replace_regex 'server=/#/.*' 'server=/#/127.0.0.1#5356' /opt/etc/dnsmasq.d/foreign_domains.conf
 
 # 修改 chinadns 的端口为 5356, 并将 ss-tunnel (端口 1082) 作为 dnsmasq 的上游 DNS 服务器,
 # 用来转发 DNS 请求到 ss-server.
@@ -97,7 +98,8 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
 # 星期一的 3:25 分升级 IP 白名单.
-chmod +x /opt/etc/update_ip_whitelist && add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
+chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
+add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 
 set +e
 /jffs/scripts/services-stop

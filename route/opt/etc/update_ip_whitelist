@@ -2,6 +2,8 @@
 
 set -e
 
+echo 'Update IP whitelist ...'
+
 curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' > /tmp/chinadns_chnroute.txt
 
 if [ ! -f /opt/etc/chinadns_chnroute.old -a -f /opt/etc/chinadns_chnroute.txt ]; then
@@ -11,3 +13,5 @@ fi
 cat /tmp/chinadns_chnroute.txt | awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /opt/etc/chinadns_chnroute.txt
 
 [ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart
+
+exit 0

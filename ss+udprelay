@@ -11,19 +11,20 @@ fi
 
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
-copy route/opt/etc/iptables_toggle.sh /opt/etc
+copy route/opt/etc/toggle_proxy.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/localips /opt/etc
 copy route/opt/etc/update_ip_whitelist /opt/etc
 copy route/opt/etc/update_dns_whitelist /opt/etc
-copy route/opt/etc/chinadns_chnroute.txt /opt/etc
 
 [ -e route/opt/etc/user_ip_whitelist.txt ] && copy route/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e route/opt/etc/user_domain_name_whitelist.txt ] && copy route/opt/etc/user_domain_name_whitelist.txt /opt/etc
 
 deploy_start
+
+/opt/etc/toggle_proxy.sh disable
 
 # ----------------------------------------------------
 #
@@ -80,7 +81,7 @@ fi
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
 # 直接使用 8.8.8.8#53 查询 DNS, 目标地址会通过 ss-redir 转发到 ss-server 执行.
-replace_string '127.0.0.1#UPSTREAM_PORT' '8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
+replace_regex 'server=/#/.*' 'server=/#/8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
 
 # 开启 udp delay
 replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
@@ -97,12 +98,13 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 每隔 1 分钟检测下所有的服务是否运行, 以及应用 iptables (如果失效的话.)
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
+# 星期一的 3:25 分升级 IP 白名单.
+chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
+add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
+
 # 星期一的 3:15 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist && /opt/etc/update_dns_whitelist
 add_service wan-start 'cru a update_dns_whitelist "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
-
-# 星期一的 3:25 分升级 IP 白名单.
-chmod +x /opt/etc/update_ip_whitelist && add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 
 set +e
 /jffs/scripts/services-stop

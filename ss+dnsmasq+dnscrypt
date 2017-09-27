@@ -1,6 +1,6 @@
 #!/bin/bash
 
-self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.6/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.7/deploy_start.sh)" && eval "$self"
 
 # self="$(cat ~/Project/deployment_bash/deploy_start.sh)" && eval "$self"
 
@@ -14,19 +14,20 @@ fi
 copy route/opt/etc/dnscrypt-proxy.sh /opt/etc
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
-copy route/opt/etc/iptables_toggle.sh /opt/etc
+copy route/opt/etc/toggle_proxy.sh /opt/etc
 copy route/opt/etc/patch_dnsmasq /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/localips /opt/etc
 copy route/opt/etc/update_ip_whitelist /opt/etc
 copy route/opt/etc/update_dns_whitelist /opt/etc
-copy route/opt/etc/chinadns_chnroute.txt /opt/etc
 
 [ -e route/opt/etc/user_ip_whitelist.txt ] && copy route/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e route/opt/etc/user_domain_name_whitelist.txt ] && copy route/opt/etc/user_domain_name_whitelist.txt /opt/etc
 
 deploy_start
+
+/opt/etc/toggle_proxy.sh disable
 
 # ----------------------------------------------------
 #
@@ -59,7 +60,7 @@ elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
     opkg install shadowsocks-libev-ss-redir
 fi
 
-opkg install dnscrypt-proxy --nodeps
+opkg install dnscrypt-proxy
 # opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then
@@ -80,7 +81,7 @@ fi
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
 # 将 dnscrypt 作为 dnsmasq 的上游 DNS 服务器
-replace_string UPSTREAM_PORT 65053 /opt/etc/dnsmasq.d/foreign_domains.conf
+replace_regex 'server=/#/.*' 'server=/#/127.0.0.1#65053' /opt/etc/dnsmasq.d/foreign_domains.conf
 #
 # 默认 shadowsocks 启动脚本使用 ss-redir 而不是 ss-local, 端口 1080.
 replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
@@ -94,12 +95,13 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 每隔 1 分钟检测下所有的服务是否运行, 以及应用 iptables (如果失效的话.)
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 
+# 星期一的 3:25 分升级 IP 白名单.
+chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
+add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
+
 # 星期一的 3:15 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist && /opt/etc/update_dns_whitelist
 add_service wan-start 'cru a update_dns_whitelist "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
-
-# 星期一的 3:25 分升级 IP 白名单.
-chmod +x /opt/etc/update_ip_whitelist && add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 
 set +e
 /jffs/scripts/services-stop
