@@ -2,23 +2,13 @@
 
 set -e
 
-resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
-default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
-domain_config_bak=/opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak
-domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
-
 echo 'Update domain name whitelist ...'
 
-wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O $domain_config_bak
-cat $domain_config_bak |sed "s#114\.114\.114\.114#${default_dns_ip}#" > $domain_config
+domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
 
-if [ -f /opt/etc/user_domain_name_whitelist.txt ]; then
-    for i in $(cat /opt/etc/user_domain_name_whitelist.txt); do
-        echo "server=/${i}/${default_dns_ip}" >> $domain_config
-    done
-fi
+wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O ${domain_config}.bak
 
-/opt/etc/restart_dnsmasq
+/opt/etc/patch_dnsmasq
 
 # cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
 #     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |

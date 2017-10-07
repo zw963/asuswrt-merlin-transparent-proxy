@@ -1,10 +1,23 @@
 #!/bin/sh
 
+resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
+default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
+
 if [ -d /opt/etc/dnsmasq.d ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
     if ! fgrep -qs 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' /etc/dnsmasq.conf; then
         cp /etc/dnsmasq.conf /etc/dnsmasq.conf.bak
         echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
+    fi
+
+    domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
+
+    cat ${domain_config}.bak |sed "s#114\.114\.114\.114#${default_dns_ip}#" > $domain_config
+
+    if [ -f /opt/etc/user_domain_name_whitelist.txt ]; then
+        for i in $(cat /opt/etc/user_domain_name_whitelist.txt); do
+            echo "server=/${i}/${default_dns_ip}" >> $domain_config
+        done
     fi
 
     /opt/etc/restart_dnsmasq
