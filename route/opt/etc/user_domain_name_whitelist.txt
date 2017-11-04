@@ -1,0 +1,2 @@
+pkg.entware.net
+raw.githubusercontent.com

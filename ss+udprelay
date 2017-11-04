@@ -119,10 +119,6 @@ if [ ! -f /tmp/patch_dnsmasq_is_run ];then
 fi
 '
 
-chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh
-# 在所有服务启动之后, 运行 iptables.sh
-add_service services-start '/opt/etc/iptables.sh'
-
 echo '貌似部署成功了!'
 echo
 echo '如果无法翻墙, 按照下列步骤查错:'

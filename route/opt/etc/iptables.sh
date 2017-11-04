@@ -49,6 +49,12 @@ if [ -e /opt/etc/user_ip_whitelist.txt ]; then
         ipset add CHINAIPS $ip
     done
 fi
+
+# 为 SHADOWSOCKS_TCP chain 插入 rule.
+for i in $localips; do
+    iptables -t nat -A SHADOWSOCKS_TCP -d $i -j RETURN
+done
+
 IFS=$OLDIFS
 
 remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
@@ -56,11 +62,6 @@ local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':'
 local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
 
 # ====================== tcp rule =======================
-
-# 为 SHADOWSOCKS_TCP chain 插入 rule.
-for i in $localips; do
-    iptables -t nat -A SHADOWSOCKS_TCP -d "$i" -j RETURN
-done
 
 # 如果访问 VPS 地址, 无需跳转, 直接返回, 否则会形成死循环.
 iptables -t nat -A SHADOWSOCKS_TCP -d $remote_server_ip -j RETURN

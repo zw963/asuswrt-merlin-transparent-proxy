@@ -11,16 +11,25 @@ if [ -d /opt/etc/dnsmasq.d ]; then
     fi
 
     domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
+    user_domain_name_whitelist=/opt/etc/user_domain_name_whitelist.txt
 
-    cat ${domain_config}.bak |sed "s#114\.114\.114\.114#${default_dns_ip}#" > $domain_config
-
-    if [ -f /opt/etc/user_domain_name_whitelist.txt ]; then
-        for i in $(cat /opt/etc/user_domain_name_whitelist.txt); do
-            echo "server=/${i}/${default_dns_ip}" >> $domain_config
+    if [ -f $user_domain_name_whitelist ]; then
+        rm -f /opt/etc/dnsmasq.d/whitelist-domains.china.conf
+        for i in $(cat $user_domain_name_whitelist); do
+            echo "server=/${i}/${default_dns_ip}" >> /opt/etc/dnsmasq.d/whitelist-domains.china.conf
         done
+        chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
     fi
 
-    /opt/etc/restart_dnsmasq
+    if ! [ -s ${domain_config}.bak ]; then
+        /opt/etc/update_dns_whitelist
+    fi
+
+    if [ -s ${domain_config}.bak ]; then
+        sed "s#114\.114\.114\.114#${default_dns_ip}#" ${domain_config}.bak > $domain_config
+    fi
+
+    chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 fi
 
 if [ -e /opt/etc/init.d/S56chinadns ]; then
@@ -30,14 +39,9 @@ fi
 
 if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
     source /opt/etc/dnscrypt-proxy.sh
-    set -u
 
-    if cat /opt/etc/dnsmasq.d/foreign_domains.conf  |grep '65053'; then
-        dnscrypt_udp_only="-T"
-    else
-        dnscrypt_udp_only=""
-    fi
-
-    sed -i "s#^ARGS=.*#ARGS=\"$dnscrypt_udp_only -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /tmp/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
+    sed -i "s#^ARGS=.*#ARGS=\"-a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /tmp/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
+
+chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh
