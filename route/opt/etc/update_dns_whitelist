@@ -6,7 +6,7 @@ echo 'Update domain name whitelist ...'
 
 domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
 
-wget https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O ${domain_config}.bak
+wget --no-check-certificate https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O ${domain_config}.bak
 
 /opt/etc/patch_dnsmasq
 
