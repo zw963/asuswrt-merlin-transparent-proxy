@@ -20,35 +20,39 @@ if [ "$ipset_protocal_version" == 6 ]; then
     modprobe ip_set_hash_net
     modprobe ip_set_hash_ip
     modprobe xt_set
+    # 默认值 hashsize 1024 maxelem 65536, 已经足够了.
+    ipset -N CHINAIPS hash:net
+    alias ipset_add='ipset add CHINAIPS'
 else
     alias iptables='/opt/sbin/iptables'
     modprobe ip_set
     modprobe ip_set_nethash
     modprobe ip_set_iphash
     modprobe ipt_set
+    ipset -N CHINAIPS nethash
+    alias ipset_add='ipset -q -A CHINAIPS'
 fi
 
 localips=$(cat /opt/etc/localips)
 
-# 默认值 hashsize 1024 maxelem 65536, 已经足够了.
-
 OLDIFS="$IFS" && IFS=$'\n'
-if ipset -N CHINAIPS hash:net; then
+if ipset -L CHINAIPS; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
     for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
-        ipset add CHINAIPS $ip
+        ipset_add $ip
     done
+
+    # 应用 ip 白名单.
+    # 格式示例:
+    # 81.4.123.217 # entware 的地址 (注释可选)
+
+    if [ -e /opt/etc/user_ip_whitelist.txt ]; then
+        for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
+            ipset_add $ip
+        done
+    fi
 fi
 
-# 应用 ip 白名单.
-# 格式示例:
-# 81.4.123.217 # entware 的地址 (注释可选)
-
-if [ -e /opt/etc/user_ip_whitelist.txt ]; then
-    for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
-        ipset add CHINAIPS $ip
-    done
-fi
 
 # 为 SHADOWSOCKS_TCP chain 插入 rule.
 for i in $localips; do
