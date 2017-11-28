@@ -8,7 +8,7 @@ if ! iptables -t nat -N SHADOWSOCKS_TCP; then
     exit
 fi
 
-echo 'Applying iptables rule, it may take several minute to finish ...'
+echo '[0m[33mApplying iptables rule, it may take several minute to finish ...[0m'
 
 [ -f /tmp/iptables.rules ] || iptables-save > /tmp/iptables.rules
 
