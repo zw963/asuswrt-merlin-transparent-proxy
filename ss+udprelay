@@ -98,7 +98,7 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
 # 每隔 3 分钟检测下 iptables 是否失效.
-add_service wan-start 'cru a run-services "*/3 * * * *" "/opt/etc/iptables.sh"'
+add_service wan-start 'cru a run-iptables "*/3 * * * *" "/opt/etc/iptables.sh"'
 
 # 星期一的 3:25 分升级 IP 白名单.
 chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
