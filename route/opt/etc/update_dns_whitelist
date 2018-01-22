@@ -8,7 +8,7 @@ domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
 
 wget --no-check-certificate https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O ${domain_config}.bak
 
-/opt/etc/patch_dnsmasq
+/opt/etc/patch_route
 
 # cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
 #     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |

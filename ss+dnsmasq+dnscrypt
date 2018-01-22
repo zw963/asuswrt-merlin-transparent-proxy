@@ -15,7 +15,7 @@ copy route/opt/etc/dnscrypt-proxy.sh /opt/etc
 copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy route/opt/etc/iptables.sh /opt/etc
 copy route/opt/etc/toggle_proxy.sh /opt/etc
-copy route/opt/etc/patch_dnsmasq /opt/etc
+copy route/opt/etc/patch_route /opt/etc
 copy route/opt/etc/restart_dnsmasq /opt/etc
 copy route/opt/etc/shadowsocks.json /opt/etc
 copy route/opt/etc/localips /opt/etc
@@ -110,11 +110,11 @@ set +e
 set -e
 /jffs/scripts/services-start
 
-chmod +x /opt/etc/patch_dnsmasq && /opt/etc/patch_dnsmasq
-# 在所有服务启动之后, 运行 /opt/etc/patch_dnsmasq, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
+chmod +x /opt/etc/patch_route && /opt/etc/patch_route
+# 在所有服务启动之后, 运行 /opt/etc/patch_route, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
 add_service services-start '
-if [ ! -f /tmp/patch_dnsmasq_is_run ];then
-    /opt/etc/patch_dnsmasq && touch /tmp/patch_dnsmasq_is_run
+if [ ! -f /tmp/patch_route_is_run ];then
+    /opt/etc/patch_route && touch /tmp/patch_route_is_run
 fi
 '
 
