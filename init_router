@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# run following to reset route
+# run following to reset router
 
 # ssh admin@192.168.50.1 <<< "$(cat init_route)" to reset router
 # ssh admin@192.168.50.1 reboot

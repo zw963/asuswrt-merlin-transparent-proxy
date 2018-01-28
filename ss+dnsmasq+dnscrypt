@@ -6,24 +6,24 @@ self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.3.7/
 
 export target=$1
 
-if [ ! -e ./route/opt/etc/shadowsocks.json ];then
-    echo '请首先定义 route/opt/etc/shadowsocks.json'
+if [ ! -e ./router/opt/etc/shadowsocks.json ];then
+    echo '请首先定义 router/opt/etc/shadowsocks.json'
     exit
 fi
 
-copy route/opt/etc/dnscrypt-proxy.sh /opt/etc
-copy route/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
-copy route/opt/etc/iptables.sh /opt/etc
-copy route/opt/etc/toggle_proxy.sh /opt/etc
-copy route/opt/etc/patch_route /opt/etc
-copy route/opt/etc/restart_dnsmasq /opt/etc
-copy route/opt/etc/shadowsocks.json /opt/etc
-copy route/opt/etc/localips /opt/etc
-copy route/opt/etc/update_ip_whitelist /opt/etc
-copy route/opt/etc/update_dns_whitelist /opt/etc
+copy router/opt/etc/dnscrypt-proxy.sh /opt/etc
+copy router/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
+copy router/opt/etc/iptables.sh /opt/etc
+copy router/opt/etc/toggle_proxy.sh /opt/etc
+copy router/opt/etc/patch_router /opt/etc
+copy router/opt/etc/restart_dnsmasq /opt/etc
+copy router/opt/etc/shadowsocks.json /opt/etc
+copy router/opt/etc/localips /opt/etc
+copy router/opt/etc/update_ip_whitelist /opt/etc
+copy router/opt/etc/update_dns_whitelist /opt/etc
 
-[ -e route/opt/etc/user_ip_whitelist.txt ] && copy route/opt/etc/user_ip_whitelist.txt /opt/etc
-[ -e route/opt/etc/user_domain_name_whitelist.txt ] && copy route/opt/etc/user_domain_name_whitelist.txt /opt/etc
+[ -e router/opt/etc/user_ip_whitelist.txt ] && copy router/opt/etc/user_ip_whitelist.txt /opt/etc
+[ -e router/opt/etc/user_domain_name_whitelist.txt ] && copy router/opt/etc/user_domain_name_whitelist.txt /opt/etc
 
 deploy_start
 
@@ -113,11 +113,11 @@ set +e
 set -e
 /jffs/scripts/services-start
 
-chmod +x /opt/etc/patch_route && /opt/etc/patch_route
-# 在所有服务启动之后, 运行 /opt/etc/patch_route, 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
+chmod +x /opt/etc/patch_router && /opt/etc/patch_router
+# 在所有服务启动之后, 运行 /opt/etc/patch_router 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
 add_service services-start '
-if [ ! -f /tmp/patch_route_is_run ];then
-    /opt/etc/patch_route && touch /tmp/patch_route_is_run
+if [ ! -f /tmp/patch_router_is_run ];then
+    /opt/etc/patch_router && touch /tmp/patch_router_is_run
 fi
 '
 

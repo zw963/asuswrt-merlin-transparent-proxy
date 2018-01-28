@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ./route/opt/etc/
+cd ./router/opt/etc/
 
 user_configs="shadowsocks.json"
 
@@ -17,4 +17,4 @@ if [ -e dnscrypt-proxy.sh ]; then
 fi
 
 scp $user_configs admin@router.asus.com:/opt/etc/
-ssh admin@router.asus.com /opt/etc/patch_route
+ssh admin@router.asus.com /opt/etc/patch_router

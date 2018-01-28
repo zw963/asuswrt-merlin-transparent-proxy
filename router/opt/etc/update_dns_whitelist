@@ -11,7 +11,7 @@ wget --no-check-certificate https://raw.githubusercontent.com/felixonmars/dnsmas
 echo "server=/entware.net/114.114.114.114" >> ${domain_config}.bak
 echo "server=/githubusercontent.com/114.114.114.114" >> ${domain_config}.bak
 
-/opt/etc/patch_route
+/opt/etc/patch_router
 
 # cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
 #     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |
