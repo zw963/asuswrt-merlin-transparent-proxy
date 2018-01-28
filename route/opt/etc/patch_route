@@ -21,12 +21,10 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
     fi
 
-    if ! [ -s ${domain_config}.bak ]; then
-        /opt/etc/update_dns_whitelist
-    fi
-
     if [ -s ${domain_config}.bak ]; then
         sed "s#114\.114\.114\.114#${default_dns_ip}#" ${domain_config}.bak > $domain_config
+    else
+        /opt/etc/update_dns_whitelist
     fi
 
     chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
