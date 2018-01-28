@@ -1,4 +1,0 @@
-81.4.123.217 # entware 的地址.
-151.101.76.133 # raw.githubusercontent.com
-151.101.40.133 # raw.githubusercontent.com
-

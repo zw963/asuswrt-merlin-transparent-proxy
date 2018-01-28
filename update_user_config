@@ -1,0 +1,20 @@
+#!/bin/bash
+
+cd ./route/opt/etc/
+
+user_configs="shadowsocks.json"
+
+if [ -e user_ip_whitelist.txt ]; then
+    user_configs=$user_configs" user_ip_whitelist.txt"
+fi
+
+if [ -e user_domain_name_whitelist.txt ]; then
+    user_configs=$user_configs" user_domain_name_whitelist.txt"
+fi
+
+if [ -e dnscrypt-proxy.sh ]; then
+    user_configs=$user_configs" dnscrypt-proxy.sh"
+fi
+
+scp $user_configs admin@router.asus.com:/opt/etc/
+ssh admin@router.asus.com /opt/etc/patch_route

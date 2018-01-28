@@ -42,10 +42,12 @@ if ipset -L CHINAIPS; then
         ipset_add $ip
     done
 
-    # 应用 ip 白名单.
-    # 格式示例:
-    # 81.4.123.217 # entware 的地址 (注释可选)
+    ipset_add 81.4.123.217 # entware
+    ipset_add 151.101.76.133 # raw.githubusercontent.com
+    ipset_add 151.101.40.133 # raw.githubusercontent.com
 
+    # user_ip_whitelist.txt 格式示例:
+    # 81.4.123.217 # entware 的地址 (注释可选)
     if [ -e /opt/etc/user_ip_whitelist.txt ]; then
         for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
             ipset_add $ip
