@@ -22,15 +22,20 @@ if [ "$ipset_protocal_version" == 6 ]; then
     modprobe xt_set
     # 默认值 hashsize 1024 maxelem 65536, 已经足够了.
     ipset -N CHINAIPS hash:net
-    alias ipset_add='ipset add CHINAIPS'
+    ipset -N CHINAIP hash:ip
+    alias ipset_add_chinaip='ipset add CHINAIP'
+    alias ipset_add_chinaips='ipset add CHINAIPS'
 else
     alias iptables='/opt/sbin/iptables'
     modprobe ip_set
     modprobe ip_set_nethash
     modprobe ip_set_iphash
     modprobe ipt_set
+    # v4 document: https://people.netfilter.org/kadlec/ipset/ipset.man.html
     ipset -N CHINAIPS nethash
-    alias ipset_add='ipset -q -A CHINAIPS'
+    ipset -N CHINAIP iphash
+    alias ipset_add_chinaip='ipset -q -A CHINAIP'
+    alias ipset_add_chinaips='ipset -q -A CHINAIPS'
 fi
 
 localips=$(cat /opt/etc/localips)
@@ -39,22 +44,23 @@ OLDIFS="$IFS" && IFS=$'\n'
 if ipset -L CHINAIPS; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
     for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
-        ipset_add $ip
+        ipset_add_chinaips $ip
     done
+fi
 
-    ipset_add 81.4.123.217 # entware
-    ipset_add 151.101.76.133 # raw.githubusercontent.com
-    ipset_add 151.101.40.133 # raw.githubusercontent.com
+if ipset -L CHINAIP; then
+    ipset_add_chinaip 81.4.123.217 # entware
+    ipset_add_chinaip 151.101.76.133 # raw.githubusercontent.com
+    ipset_add_chinaip 151.101.40.133 # raw.githubusercontent.com
 
     # user_ip_whitelist.txt 格式示例:
     # 81.4.123.217 # entware 的地址 (注释可选)
     if [ -e /opt/etc/user_ip_whitelist.txt ]; then
         for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
-            ipset_add $ip
+            ipset_add_chinaip $ip
         done
     fi
 fi
-
 
 # 为 SHADOWSOCKS_TCP chain 插入 rule.
 for i in $localips; do
@@ -73,6 +79,7 @@ local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -
 iptables -t nat -A SHADOWSOCKS_TCP -d $remote_server_ip -j RETURN
 # 访问来自中国的 ip, 直接返回.
 iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
+iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETURN
 # 否则, 重定向到 ss-redir
 iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
 
