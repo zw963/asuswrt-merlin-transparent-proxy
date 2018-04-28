@@ -124,8 +124,6 @@ fi
 '
 /opt/etc/patch_router
 
-echo '貌似部署成功了!'
-echo
 echo '如果无法翻墙, 按照下列步骤查错:'
 echo '1. 断掉已连接的 WiFi, 并重新连接, 看看是否可以翻墙.'
 echo '2. 保持 U 盘, 重启路由器, 并等待片刻, 看看是否可以翻墙.'
@@ -139,4 +137,8 @@ echo
 echo  '如果无法连接路由器.'
 echo '1. 拔下 U 盘, 重启, 尝试重新连接路由器'
 echo '2. 进入管理界面, 选择格式化 jffs, 并重启'
+echo
+echo '如果希望暂时关闭翻墙.'
+echo '$ssh admin@router.asus.com /opt/etc/toggle_proxy.sh'
+echo '重新开启, 只需再次运行以上脚本.'
 # reboot
