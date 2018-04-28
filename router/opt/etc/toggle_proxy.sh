@@ -16,7 +16,7 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
 
     if [ "$ipset_protocal_version" == 6 ]; then
         alias iptables='/usr/sbin/iptables'
-        ipset destory CHINAIP
+        ipset destroy CHINAIP
         ipset destroy CHINAIPS
     else
         alias iptables='/opt/sbin/iptables'
