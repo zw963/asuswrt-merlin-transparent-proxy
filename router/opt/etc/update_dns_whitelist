@@ -11,7 +11,12 @@ wget --no-check-certificate https://raw.githubusercontent.com/felixonmars/dnsmas
 echo "server=/entware.net/114.114.114.114" >> ${domain_config}.bak
 echo "server=/githubusercontent.com/114.114.114.114" >> ${domain_config}.bak
 
-/opt/etc/patch_router
+# 为默认的 /etc/dnsmasq.conf 新增配置.
+if ! grep -qs '^conf-dir=/opt/etc/dnsmasq.d/,\*\.conf$' /etc/dnsmasq.conf; then
+    echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
+fi
+
+chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 
 # cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
 #     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |

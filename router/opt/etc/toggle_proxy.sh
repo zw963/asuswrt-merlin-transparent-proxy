@@ -8,16 +8,19 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
 
     ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
-    [ -f /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
+    iptables-restore < /tmp/iptables.rules
     chmod -x /opt/etc/iptables.sh
+    chmod -x /opt/etc/patch_router
 
     ip route flush table 100
 
     if [ "$ipset_protocal_version" == 6 ]; then
         alias iptables='/usr/sbin/iptables'
+        ipset destory CHINAIP
         ipset destroy CHINAIPS
     else
         alias iptables='/opt/sbin/iptables'
+        ipset -X CHINAIP
         ipset -X CHINAIPS
     fi
 
@@ -26,8 +29,7 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
     iptables -t mangle -F SHADOWSOCKS_UDP 2>/dev/null
     iptables -t mangle -X SHADOWSOCKS_UDP 2>/dev/null
 
-    sed -i "s#server=/\#/.*#server=/\#/${default_dns_ip}#" /opt/etc/dnsmasq.d/foreign_domains.conf
-
+    sed -i "s#conf-dir=/opt/etc/dnsmasq.d/,\*\.conf#\# &#" /etc/dnsmasq.conf
     /opt/etc/restart_dnsmasq
 else
     echo 'Enable proxy ...'

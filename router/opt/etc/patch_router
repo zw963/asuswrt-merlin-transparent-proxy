@@ -5,8 +5,7 @@ default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
 
 if [ -d /opt/etc/dnsmasq.d ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
-    if ! fgrep -qs 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' /etc/dnsmasq.conf; then
-        cp /etc/dnsmasq.conf /etc/dnsmasq.conf.bak
+    if ! grep -qs '^conf-dir=/opt/etc/dnsmasq.d/,\*\.conf$' /etc/dnsmasq.conf; then
         echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
     fi
 
@@ -20,11 +19,11 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         done
     fi
 
-    if [ -s ${domain_config}.bak ]; then
-        sed "s#114\.114\.114\.114#${default_dns_ip}#" ${domain_config}.bak > $domain_config
-    else
+    if [ ! -s ${domain_config}.bak ]; then
         /opt/etc/update_dns_whitelist
     fi
+
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" ${domain_config}.bak > $domain_config
 
     chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 fi
@@ -36,6 +35,7 @@ fi
 
 if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
     source /opt/etc/dnscrypt-proxy.sh
+
     [ "$tcp_only" == true ] && tcp_only_arg='-T'
 
     sed -i "s#^ARGS=.*#ARGS=\"${tcp_only_arg} -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /tmp/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
