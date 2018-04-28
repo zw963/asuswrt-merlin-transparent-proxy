@@ -33,7 +33,7 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
     /opt/etc/restart_dnsmasq
 else
     echo 'Enable proxy ...'
-
+    chmod +x /opt/etc/iptables.sh
     chmod +x /opt/etc/patch_router && /opt/etc/patch_router
 fi
 
