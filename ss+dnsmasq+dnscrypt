@@ -27,13 +27,13 @@ copy router/opt/etc/update_dns_whitelist /opt/etc
 
 deploy_start
 
-/opt/etc/toggle_proxy.sh disable
-
 # ----------------------------------------------------
 #
 # 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
 #
 # ---------------------------------------------------
+
+/opt/etc/toggle_proxy.sh disable
 
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
 # ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
@@ -108,19 +108,21 @@ add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_i
 chmod +x /opt/etc/update_dns_whitelist && /opt/etc/update_dns_whitelist
 add_service wan-start 'cru a update_dns_whitelist "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
 
+chmod +x /opt/etc/iptables.sh
+chmod +x /opt/etc/patch_router
+
 set +e
 /jffs/scripts/services-stop
 set -e
 /jffs/scripts/services-start
 
-chmod +x /opt/etc/iptables.sh
-chmod +x /opt/etc/patch_router && /opt/etc/patch_router
 # 在所有服务启动之后, 运行 /opt/etc/patch_router 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
 add_service services-start '
 if [ ! -f /tmp/patch_router_is_run ];then
     /opt/etc/patch_router && touch /tmp/patch_router_is_run
 fi
 '
+/opt/etc/patch_router
 
 echo '貌似部署成功了!'
 echo
