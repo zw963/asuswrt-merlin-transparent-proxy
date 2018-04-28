@@ -18,7 +18,6 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         for i in $(cat $user_domain_name_whitelist); do
             echo "server=/${i}/${default_dns_ip}" >> /opt/etc/dnsmasq.d/whitelist-domains.china.conf
         done
-        chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
     fi
 
     if [ -s ${domain_config}.bak ]; then
@@ -43,4 +42,4 @@ if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
 
-chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh
+/opt/etc/iptables.sh
