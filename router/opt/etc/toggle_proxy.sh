@@ -8,7 +8,7 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
 
     ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
-    iptables-restore < /tmp/iptables.rules
+    [ -e /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
     chmod -x /opt/etc/iptables.sh
     chmod -x /opt/etc/patch_router
 
