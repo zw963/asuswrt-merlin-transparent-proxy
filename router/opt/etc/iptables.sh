@@ -8,6 +8,10 @@ if ! iptables -t nat -N SHADOWSOCKS_TCP; then
     exit
 fi
 
+remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
+local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
+local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
+
 echo '[0m[33mApplying iptables rule, it may take several minute to finish ...[0m'
 
 [ -f /tmp/iptables.rules ] || iptables-save > /tmp/iptables.rules
@@ -38,12 +42,14 @@ else
     alias ipset_add_chinaips='ipset -q -A CHINAIPS'
 fi
 
-localips=$(cat /opt/etc/localips)
-
 OLDIFS="$IFS" && IFS=$'\n'
 if ipset -L CHINAIPS; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
     for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
+        ipset_add_chinaips $ip
+    done
+
+    for ip in $(cat /opt/etc/localips); do
         ipset_add_chinaips $ip
     done
 fi
@@ -52,6 +58,7 @@ if ipset -L CHINAIP; then
     ipset_add_chinaip 81.4.123.217 # entware
     ipset_add_chinaip 151.101.76.133 # raw.githubusercontent.com
     ipset_add_chinaip 151.101.40.133 # raw.githubusercontent.com
+    ipset_add_chinaip $remote_server_ip # vps ip address, 如果访问 VPS 地址, 无需跳转, 直接返回, 否则会形成死循环.
 
     # user_ip_whitelist.txt 格式示例:
     # 81.4.123.217 # entware 的地址 (注释可选)
@@ -61,23 +68,11 @@ if ipset -L CHINAIP; then
         done
     fi
 fi
-
-# 为 SHADOWSOCKS_TCP chain 插入 rule.
-for i in $localips; do
-    iptables -t nat -A SHADOWSOCKS_TCP -d $i -j RETURN
-done
-
 IFS=$OLDIFS
-
-remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
 
 # ====================== tcp rule =======================
 
-# 如果访问 VPS 地址, 无需跳转, 直接返回, 否则会形成死循环.
-iptables -t nat -A SHADOWSOCKS_TCP -d $remote_server_ip -j RETURN
-# 访问来自中国的 ip, 直接返回.
+# 两个 ipset 中的 ip 直接返回.
 iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
 iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETURN
 # 否则, 重定向到 ss-redir
@@ -113,26 +108,25 @@ for i in $localips; do
     iptables -t mangle -A SHADOWSOCKS_UDP -d "$i" -j RETURN
 done
 
-iptables -t mangle -A SHADOWSOCKS_MARK -d $remote_server_ip -j RETURN
+# 两个 ipset 中的 ip 直接返回.
+iptables -t mangle -A SHADOWSOCKS_UDP -p udp -m set --match-set CHINAIPS dst -j RETURN
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set --match-set CHINAIP dst -j RETURN
 
 # 猜测:
-# 1. 这一步执行真正的 set-mark 操作.
-# 2. 所有目的地 ip 为 8.8.8.8, 端口为 53 的数据包都将会 setmark 1.
-# 3. 这意味着所有的 DNS 数据包都被发往 ss-redir 端口 在 VPS 使用 8.8.8.8 来解析.
-iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.8.8 --dport 53 -j MARK --set-mark 1
-
-# 几个需要澄清的地方:
-# 1. --dport 53 -d 8.8.8.8 这些是相对于宿主机来说的, 即: client.
-# 2. TPROXY only works in iptables PREROUTING-chain, 即: 在数据包进入路由器时, 使用 tproxy 进行代理.
-
-# 猜测:
-# 1. 这条规则, 在数据包进入路由器时被应用.
+# 1. TPROXY only works in iptables PREROUTING-chain, 即: 在数据包进入路由器时, 这条规则被应用, 使用 tproxy 进行代理.
 # 2. --dport 53, 表示进入的包, 目标端口是 53, 也就是 DNS 包.
 # 3. --on-ip 192.168.50.1, 表示进入的包, 目标 ip 就是路由器的地址, 即: 192.168.50.1
 # 4. --on-port 是 tproxy 模块要代理到的目标, 这里是 1080, 没错了, 它和 --tproxy-mark 0x01/0x01
 #    一起配合工作, 表示, 如果有数据包被 mark 为 0x01/0x01, 就转发到 1080 端口
 #    这一步, 只是完成了 tproxy 代理的策略, 并没有任何 set mark 操作发生.
-iptables -t mangle -A SHADOWSOCKS_UDP -p udp --dport 53 -j TPROXY --on-port 1080 --on-ip $local_redir_ip --tproxy-mark 0x01/0x01
+iptables -t mangle -A SHADOWSOCKS_UDP -p udp --dport 53 -j TPROXY --on-port $local_redir_port --on-ip $local_redir_ip --tproxy-mark 0x01/0x01
+
+# 猜测:
+# 1. 这一步执行真正的 set-mark 操作.
+# 2. dnsmasq 会转发所有国内域名之外的域名查询请求到 8.8.8.8(在 dnsmasq 配置中有配置),
+#    所有目的地 ip 为 8.8.8.8, 端口为 53 的数据包都将会 setmark 1.
+# 3. 这意味着所有的 DNS 数据包都被发往 ss-redir 端口 在 VPS 使用 8.8.8.8 来解析.
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.8.8 --dport 53 -j MARK --set-mark 1
 
 # apply udp rule
 
