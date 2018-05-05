@@ -103,13 +103,10 @@ iptables -t mangle -N SHADOWSOCKS_MARK
 ip rule add fwmark 1 lookup 100
 ip route add local default dev lo table 100
 
-for i in $localips; do
-    iptables -t mangle -A SHADOWSOCKS_MARK -d "$i" -j RETURN
-    iptables -t mangle -A SHADOWSOCKS_UDP -d "$i" -j RETURN
-done
-
 # 两个 ipset 中的 ip 直接返回.
 iptables -t mangle -A SHADOWSOCKS_UDP -p udp -m set --match-set CHINAIPS dst -j RETURN
+iptables -t mangle -A SHADOWSOCKS_UDP -p udp -m set --match-set CHINAIP dst -j RETURN
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set --match-set CHINAIPS dst -j RETURN
 iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set --match-set CHINAIP dst -j RETURN
 
 # 猜测:
