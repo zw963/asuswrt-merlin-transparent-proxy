@@ -28,6 +28,8 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
     iptables -t nat -X SHADOWSOCKS_TCP          # --delete-chain
     iptables -t mangle -F SHADOWSOCKS_UDP 2>/dev/null
     iptables -t mangle -X SHADOWSOCKS_UDP 2>/dev/null
+    iptables -t mangle -F SHADOWSOCKS_MARK 2>/dev/null
+    iptables -t mangle -X SHADOWSOCKS_MARK 2>/dev/null
 
     sed -i "s#conf-dir=/opt/etc/dnsmasq.d/,\*\.conf#\# &#" /etc/dnsmasq.conf
     /opt/etc/restart_dnsmasq
