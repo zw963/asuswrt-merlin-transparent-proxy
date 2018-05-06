@@ -12,7 +12,7 @@ remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|
 local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
 
-echo '[0m[33mApplying iptables rule, it may take several minute to finish ...[0m'
+echo '[0m[33mApplying ipset rule, it may take several minute to finish ...[0m'
 
 [ -f /tmp/iptables.rules ] || iptables-save > /tmp/iptables.rules
 
