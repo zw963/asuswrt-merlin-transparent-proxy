@@ -33,13 +33,13 @@ if [ -e /opt/etc/init.d/S56chinadns ]; then
     /opt/etc/init.d/S56chinadns restart
 fi
 
-if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
-    source /opt/etc/dnscrypt-proxy.sh
+# if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
+#     source /opt/etc/dnscrypt-proxy.sh
 
-    [ "$tcp_only" == true ] && tcp_only_arg='-T'
+#     [ "$tcp_only" == true ] && tcp_only_arg='-T'
 
-    sed -i "s#^ARGS=.*#ARGS=\"${tcp_only_arg} -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /tmp/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
-    /opt/etc/init.d/S09dnscrypt-proxy restart
-fi
+#     sed -i "s#^ARGS=.*#ARGS=\"${tcp_only_arg} -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /tmp/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
+#     /opt/etc/init.d/S09dnscrypt-proxy restart
+# fi
 
 /opt/etc/iptables.sh
