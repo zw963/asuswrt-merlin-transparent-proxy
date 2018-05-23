@@ -58,6 +58,7 @@ if ipset -L CHINAIP; then
     ipset_add_chinaip 81.4.123.217 # entware
     ipset_add_chinaip 151.101.76.133 # raw.githubusercontent.com
     ipset_add_chinaip 151.101.40.133 # raw.githubusercontent.com
+    ipset_add_chinaip 114.114.114.114
     ipset_add_chinaip $remote_server_ip # vps ip address, 如果访问 VPS 地址, 无需跳转, 直接返回, 否则会形成死循环.
 
     # user_ip_whitelist.txt 格式示例:

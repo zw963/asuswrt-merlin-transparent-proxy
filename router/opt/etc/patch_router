@@ -1,7 +1,12 @@
 #!/bin/sh
 
 resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
-default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
+
+if [ "$resolv_file" ]; then
+    default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
+else
+    default_dns_ip='114.114.114.114'
+fi
 
 if [ -d /opt/etc/dnsmasq.d ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
