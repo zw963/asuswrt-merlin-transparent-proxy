@@ -1,8 +1,5 @@
 #!/bin/sh
 
-resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
-default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
-
 if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
     echo 'Disable proxy ...'
 
