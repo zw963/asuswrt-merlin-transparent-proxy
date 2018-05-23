@@ -107,8 +107,6 @@ ip route add local default dev lo table 100
 # 两个 ipset 中的 ip 直接返回.
 iptables -t mangle -A SHADOWSOCKS_UDP -p udp -m set --match-set CHINAIPS dst -j RETURN
 iptables -t mangle -A SHADOWSOCKS_UDP -p udp -m set --match-set CHINAIP dst -j RETURN
-iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set --match-set CHINAIPS dst -j RETURN
-iptables -t mangle -A SHADOWSOCKS_MARK -p udp -m set --match-set CHINAIP dst -j RETURN
 
 # 猜测:
 # 1. TPROXY only works in iptables PREROUTING-chain, 即: 在数据包进入路由器时, 这条规则被应用, 使用 tproxy 进行代理.
