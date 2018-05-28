@@ -1,20 +1,13 @@
 #!/bin/bash
 
-# run following to reset router
-
-# ssh admin@192.168.50.1 <<< "$(cat init_route)" to reset router
-# ssh admin@192.168.50.1 reboot
+# run following command to reset router
+# $: ssh admin@router.asus.com <<< "$(cat init_router)"
 
 [ -e /opt/etc/toggle_proxy.sh ] && sh /opt/etc/toggle_proxy.sh disable
 
 date=$(date '+%Y-%m-%d_%H-%M-%S')
 mv /tmp/mnt/sda1/entware /tmp/mnt/sda1/entware_bak_$date
 cp -a /tmp/mnt/sda1/entware.bak /tmp/mnt/sda1/entware
-
-if fgrep -qs 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' /etc/dnsmasq.conf; then
-    sed -i 's#conf-dir=/opt/etc/dnsmasq.d/,\*\.conf$##g' /etc/dnsmasq.conf
-fi
-dnsmasq --test && kill $(cat /var/run/dnsmasq.pid) && dnsmasq --log-async
 
 rm -f /opt/var/lock/opkg.lock
 
@@ -35,3 +28,5 @@ done
 $RC start
 HEREDOC
 exit
+
+echo '' > /jffs/scripts/wan-start
