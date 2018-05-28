@@ -64,7 +64,7 @@ fi
 
 opkg --autoremove remove dnscrypt-proxy
 opkg install dnscrypt-proxy
-# opkg install bind-dig
+opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then
     # AC87U 无需安装新版的 iptables/ipset

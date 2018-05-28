@@ -89,7 +89,7 @@ iptables -t nat -I OUTPUT 1 -p tcp -j SHADOWSOCKS_TCP
 # 只有满足下面两个条件, 才需要 udp rule
 
 if ! modprobe xt_TPROXY; then
-    echo 'Kernel not support tproxy!'
+    echo 'Kernel not support tproxy, skip UDP rule.'
     exit 0
 fi
 

@@ -5,21 +5,22 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
 
     ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
-    [ -e /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
-    chmod -x /opt/etc/iptables.sh
-    chmod -x /opt/etc/patch_router
-
     ip route flush table 100
 
     if [ "$ipset_protocal_version" == 6 ]; then
         alias iptables='/usr/sbin/iptables'
         ipset destroy CHINAIP
         ipset destroy CHINAIPS
+        iptables-restore < /tmp/iptables.rules
     else
         alias iptables='/opt/sbin/iptables'
         ipset -X CHINAIP
         ipset -X CHINAIPS
+        /usr/sbin/iptables-restore < /tmp/iptables.rules
     fi
+
+    chmod -x /opt/etc/iptables.sh
+    chmod -x /opt/etc/patch_router
 
     iptables -t nat -F SHADOWSOCKS_TCP          # flush
     iptables -t nat -X SHADOWSOCKS_TCP          # --delete-chain
