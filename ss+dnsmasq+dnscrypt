@@ -1,6 +1,6 @@
 #!/bin/bash
 
-self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.1/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.4/deploy_start.sh)" && eval "$self"
 
 # self="$(cat ~/Project/deployment_bash/deploy_start.sh)" && eval "$self"
 
@@ -24,7 +24,6 @@ copy router/opt/etc/update_dns_whitelist /opt/etc
 
 [ -e router/opt/etc/user_ip_whitelist.txt ] && copy router/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e router/opt/etc/user_domain_name_whitelist.txt ] && copy router/opt/etc/user_domain_name_whitelist.txt /opt/etc
-
 deploy_start
 
 # ----------------------------------------------------
