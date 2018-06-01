@@ -56,14 +56,8 @@ sysctl -p
 # version 3.2.0 not worked with Merlin ss
 version='3.1.1'
 
-# download_and_extract https://download.libsodium.org/libsodium/releases/libsodium-1.0.16.tar.gz
-# cd libsodium-1.0.16 &&
-#     configure libsodium-dev &&
-#     make &&
-#     make install
-
 package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
-        udns-devel libev-devel libsodium-dev haveged
+        udns-devel libev-devel libsodium-devel haveged c-ares-devel
 
 [ -d shadowsocks-libev-${version} ] || download_and_extract https://github.com/shadowsocks/shadowsocks-libev/releases/download/v${version}/shadowsocks-libev-${version}.tar.gz
 
@@ -71,7 +65,7 @@ cd shadowsocks-libev-${version}/ &&
     configure shadowsocks &&
     make &&
     make install-strip &&
-    daemon shadowsocks '/usr/bin/ss-server -u --fast-open -c /etc/shadowsocks/config.json -vvv'
+    daemon shadowsocks '/usr/bin/ss-server -u --fast-open --no-delay -c /etc/shadowsocks/config.json -vvv'
 
 server_port=$(cat /etc/shadowsocks/config.json |grep 'server_port"' |grep -o '[0-9]*')
 expose_port $server_port
