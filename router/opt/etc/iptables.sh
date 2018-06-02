@@ -80,9 +80,9 @@ iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETU
 iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
 
 # Apply tcp rule
-iptables -t nat -I PREROUTING 1 -p tcp -j SHADOWSOCKS_TCP
+iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS_TCP
 # 从路由器内访问时, 也是用这个 rule.
-iptables -t nat -I OUTPUT 1 -p tcp -j SHADOWSOCKS_TCP
+# iptables -t nat -A OUTPUT -p tcp -j SHADOWSOCKS_TCP
 
 # ====================== udp rule =======================
 
@@ -129,4 +129,4 @@ iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.8.8 --dport 53 -j MARK --se
 # -A 链名 表示新增(append)一条规则到该链, 该规则增加在原本存在规则的最后面.
 # 换成 -I 链名 1, 则新插入的规则变为第一条规则.
 iptables -t mangle -A PREROUTING -p udp -j SHADOWSOCKS_UDP
-iptables -t mangle -A OUTPUT -p udp -j SHADOWSOCKS_MARK
+# iptables -t mangle -A OUTPUT -p udp -j SHADOWSOCKS_MARK
