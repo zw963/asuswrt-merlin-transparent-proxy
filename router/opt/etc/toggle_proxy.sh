@@ -11,12 +11,12 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
         alias iptables='/usr/sbin/iptables'
         ipset destroy CHINAIP
         ipset destroy CHINAIPS
-        iptables-restore < /tmp/iptables.rules
+        [ -f /tmp/iptables.rules ] && iptables-restore < /tmp/iptables.rules
     else
         alias iptables='/opt/sbin/iptables'
         ipset -X CHINAIP
         ipset -X CHINAIPS
-        /usr/sbin/iptables-restore < /tmp/iptables.rules
+        [ -f /tmp/iptables.rules ] &&  /usr/sbin/iptables-restore < /tmp/iptables.rules
     fi
 
     chmod -x /opt/etc/iptables.sh
