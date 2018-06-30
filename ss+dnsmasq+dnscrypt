@@ -1,6 +1,6 @@
 #!/bin/bash
 
-self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.4/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/deploy_start.sh)" && eval "$self"
 
 # self="$(cat ~/Project/deployment_bash/deploy_start.sh)" && eval "$self"
 
