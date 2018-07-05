@@ -2,9 +2,9 @@
 
 set -e
 
-/opt/etc/toggle_proxy.sh disable
-
 echo 'Update IP whitelist ...'
+
+/opt/etc/toggle_proxy.sh disable
 
 curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' > /tmp/chinadns_chnroute.txt
 
@@ -17,5 +17,7 @@ cat /tmp/chinadns_chnroute.txt | awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32
 [ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart
 
 /opt/etc/toggle_proxy.sh
+
+echo 'Update IP whitelist done.'
 
 exit 0

@@ -31,12 +31,12 @@ if [ -x /opt/etc/iptables.sh ] || [ "$1" == 'disable' ]; then
 
     sed -i "s#conf-dir=/opt/etc/dnsmasq.d/,\*\.conf#\# &#" /etc/dnsmasq.conf
     /opt/etc/restart_dnsmasq
+    echo 'Proxy is disabled.'
 else
     echo 'Enable proxy ...'
     chmod +x /opt/etc/iptables.sh
     chmod +x /opt/etc/patch_router && /opt/etc/patch_router
+    echo 'Proxy is enabled.'
 fi
-
-echo 'Done.'
 
 # iptables -t nat -D PREROUTING -p tcp -j SHADOWSOCKS

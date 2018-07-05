@@ -24,8 +24,12 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         done
     fi
 
-    if [ ! -s ${domain_config}.bak ]; then
+    if ! [ -s ${domain_config}.bak ]; then
         /opt/etc/update_dns_whitelist
+    fi
+
+    if ! [ -s /opt/etc/chinadns_chnroute.txt ]; then
+        /opt/etc/update_ip_whitelist
     fi
 
     sed "s#114\.114\.114\.114#${default_dns_ip}#" ${domain_config}.bak > $domain_config

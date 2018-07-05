@@ -2,9 +2,9 @@
 
 set -e
 
-/opt/etc/toggle_proxy.sh disable
+echo 'Update DNS whitelist ...'
 
-echo 'Update domain name whitelist ...'
+/opt/etc/toggle_proxy.sh disable
 
 domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
 
@@ -19,6 +19,8 @@ if ! grep -qs '^conf-dir=/opt/etc/dnsmasq.d/,\*\.conf$' /etc/dnsmasq.conf; then
 fi
 
 /opt/etc/toggle_proxy.sh
+
+echo 'Update DNS whitelist done.'
 
 # cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
 #     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |

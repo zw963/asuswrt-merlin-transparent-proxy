@@ -45,13 +45,17 @@ fi
 OLDIFS="$IFS" && IFS=$'\n'
 if ipset -L CHINAIPS &>/dev/null; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
-    for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
-        ipset_add_chinaips $ip
-    done
+    count=$(ipset -L CHINAIPS |wc -l)
 
-    for ip in $(cat /opt/etc/localips); do
-        ipset_add_chinaips $ip
-    done
+    if [ "$count" -lt "8000" ]; then
+        for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
+            ipset_add_chinaips $ip
+        done
+
+        for ip in $(cat /opt/etc/localips); do
+            ipset_add_chinaips $ip
+        done
+    fi
 fi
 
 if ipset -L CHINAIP; then
