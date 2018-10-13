@@ -1,5 +1,5 @@
 /router/opt/etc/shadowsocks.json
 /router/opt/etc/user_domain_name_whitelist.txt
-/router/opt/etc/user_domain_name_blacklist.txt
+/router/opt/etc/user_domain_name_blocklist.txt
 /router/opt/etc/user_ip_whitelist.txt
 /router/opt/etc/dnscrypt-proxy.sh

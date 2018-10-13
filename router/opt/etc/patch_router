@@ -16,7 +16,7 @@ if [ -d /opt/etc/dnsmasq.d ]; then
 
     domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
     user_domain_name_whitelist=/opt/etc/user_domain_name_whitelist.txt
-    user_domain_name_blacklist=/opt/etc/user_domain_name_blacklist.txt
+    user_domain_name_blocklist=/opt/etc/user_domain_name_blocklist.txt
 
     if [ -f $user_domain_name_whitelist ]; then
         rm -f /opt/etc/dnsmasq.d/whitelist-domains.china.conf
@@ -25,10 +25,10 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         done
     fi
 
-    if [ -f $user_domain_name_blacklist ]; then
+    if [ -f $user_domain_name_blocklist ]; then
         rm -f /opt/etc/dnsmasq.d/blacklist-domains.china.conf
         for i in $(cat $user_domain_name_blacklist); do
-            echo "address=/${i}/127.0.0.1" >> /opt/etc/dnsmasq.d/blacklist-domains.china.conf
+            echo "address=/${i}/127.0.0.1" >> /opt/etc/dnsmasq.d/blocklist-domains.china.conf
         done
     fi
 
