@@ -22,6 +22,10 @@ This project is for config you asus router (based on merlin) to serve as a trans
 
 For details, please see [Wiki](https://github.com/zw963/asuswrt-merlin-transparent-proxy/wiki) link.
 
+## TODO
+
+Integrate AD filtering into install script (see https://diversion.ch)
+
 ## Contributing
 
   * [Bug reports](https://github.com/zw963/asuswrt-merlin-transparent-proxy/issues)
