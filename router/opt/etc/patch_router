@@ -8,31 +8,36 @@ else
     default_dns_ip='114.114.114.114'
 fi
 
-if [ -d /opt/etc/dnsmasq.d ]; then
+dnsmasq_dir=/opt/etc/dnsmasq.d
+
+if [ -d "$dnsmasq_dir" ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
-    if ! grep -qs '^conf-dir=/opt/etc/dnsmasq.d/,\*\.conf$' /etc/dnsmasq.conf; then
-        echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
+    if ! grep -qs "^conf-dir=$dnsmasq_dir/,\*\.conf$" /etc/dnsmasq.conf; then
+        echo "conf-dir=$dnsmasq_dir/,*.conf" >> /etc/dnsmasq.conf
     fi
 
-    domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
+    accelerated=accelerated-domains.china.conf
+    google=google.china.conf
+    apple=apple.china.conf
+
     user_domain_name_whitelist=/opt/etc/user_domain_name_whitelist.txt
     user_domain_name_blocklist=/opt/etc/user_domain_name_blocklist.txt
 
     if [ -f $user_domain_name_whitelist ]; then
-        rm -f /opt/etc/dnsmasq.d/whitelist-domains.china.conf
+        rm -f $dnsmasq_dir/whitelist-domains.china.conf
         for i in $(cat $user_domain_name_whitelist); do
-            echo "server=/${i}/${default_dns_ip}" >> /opt/etc/dnsmasq.d/whitelist-domains.china.conf
+            echo "server=/${i}/${default_dns_ip}" >> $dnsmasq_dir/whitelist-domains.china.conf
         done
     fi
 
     if [ -f $user_domain_name_blocklist ]; then
-        rm -f /opt/etc/dnsmasq.d/blacklist-domains.china.conf
+        rm -f $dnsmasq_dir/blacklist-domains.china.conf
         for i in $(cat $user_domain_name_blacklist); do
-            echo "address=/${i}/127.0.0.1" >> /opt/etc/dnsmasq.d/blocklist-domains.china.conf
+            echo "address=/${i}/127.0.0.1" >> $dnsmasq_dir/blocklist-domains.china.conf
         done
     fi
 
-    if ! [ -s ${domain_config}.bak ]; then
+    if ! [ -s $dnsmasq_dir/$accelerated.bak ]; then
         /opt/etc/update_dns_whitelist
     fi
 
@@ -40,7 +45,9 @@ if [ -d /opt/etc/dnsmasq.d ]; then
         /opt/etc/update_ip_whitelist
     fi
 
-    sed "s#114\.114\.114\.114#${default_dns_ip}#" ${domain_config}.bak > $domain_config
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$accelerated.bak > $dnsmasq_dir/$accelerated
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$google.bak > $dnsmasq_dir/$google
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$apple.bak > $dnsmasq_dir/$apple
 
     chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 fi

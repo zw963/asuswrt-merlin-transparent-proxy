@@ -6,22 +6,17 @@ echo 'Update DNS whitelist ...'
 
 /opt/etc/toggle_proxy.sh disable
 
-domain_config=/opt/etc/dnsmasq.d/accelerated-domains.china.conf
+accelerated=accelerated-domains.china.conf
+google=google.china.conf
+apple=apple.china.conf
 
-wget --no-check-certificate https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -O ${domain_config}.bak
+download_url=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master
+dnsmasq_dir=/opt/etc/dnsmasq.d
 
-echo "server=/entware.net/114.114.114.114" >> ${domain_config}.bak
-echo "server=/githubusercontent.com/114.114.114.114" >> ${domain_config}.bak
-
-# 为默认的 /etc/dnsmasq.conf 新增配置.
-if ! grep -qs '^conf-dir=/opt/etc/dnsmasq.d/,\*\.conf$' /etc/dnsmasq.conf; then
-    echo 'conf-dir=/opt/etc/dnsmasq.d/,*.conf' >> /etc/dnsmasq.conf
-fi
+wget --no-check-certificate $download_url/$accelerated -O $dnsmasq_dir/$accelerated.bak
+wget --no-check-certificate $download_url/$google -O $dnsmasq_dir/$google.bak
+wget --no-check-certificate $download_url/$apple -O $dnsmasq_dir/$apple.bak
 
 /opt/etc/toggle_proxy.sh
 
 echo 'Update DNS whitelist done.'
-
-# cat /opt/etc/dnsmasq.d/accelerated-domains.china.conf.bak |
-#     sed 's#server=\(.*\)114.114.114.114#ipset=\1FREEWEB#' |
-#     sed "s|^\(server.*\)/[^/]*$|\1/#|" > /opt/etc/dnsmasq.d/accelerated-domains-ipset.china.conf
