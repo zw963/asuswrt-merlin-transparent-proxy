@@ -26,7 +26,7 @@ if [ -d "$dnsmasq_dir" ]; then
         echo "conf-dir=$dnsmasq_dir/,*.conf" >> /etc/dnsmasq.conf
     fi
 
-    if ! grep -qs "^$" /etc/dnsmasq.conf; then
+    if ! grep -qs "^log-queries$" /etc/dnsmasq.conf; then
         echo 'log-queries' >> /etc/dnsmasq.conf
     fi
 
