@@ -12,8 +12,9 @@ remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|
 local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
 
-echo '[0m[33mApplying ipset rule, it may take several minute to finish ...[0m'
+echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
 
+# 如果没有备份 iptables rule, 就备份它.
 [ -f /tmp/iptables.rules ] || iptables-save > /tmp/iptables.rules
 
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
@@ -48,27 +49,27 @@ if ipset -L CHINAIPS &>/dev/null; then
     count=$(ipset -L CHINAIPS |wc -l)
 
     if [ "$count" -lt "8000" ]; then
-        for ip in $(cat /opt/etc/chinadns_chnroute.txt); do
+        for ip in $(cat /opt/etc/chinadns_chnroute.txt |grep -v '^#'); do
             ipset_add_chinaips $ip
         done
 
-        for ip in $(cat /opt/etc/localips); do
+        for ip in $(cat /opt/etc/localips|grep -v '^#'); do
             ipset_add_chinaips $ip
         done
     fi
 fi
 
 if ipset -L CHINAIP; then
+    ipset_add_chinaip 202.12.29.205 # ftp.apnic.net
     ipset_add_chinaip 81.4.123.217 # entware
     ipset_add_chinaip 151.101.76.133 # raw.githubusercontent.com
     ipset_add_chinaip 151.101.40.133 # raw.githubusercontent.com
-    ipset_add_chinaip 114.114.114.114
     ipset_add_chinaip $remote_server_ip # vps ip address, 如果访问 VPS 地址, 无需跳转, 直接返回, 否则会形成死循环.
 
     # user_ip_whitelist.txt 格式示例:
     # 81.4.123.217 # entware 的地址 (注释可选)
     if [ -e /opt/etc/user_ip_whitelist.txt ]; then
-        for ip in $(cat /opt/etc/user_ip_whitelist.txt); do
+        for ip in $(cat /opt/etc/user_ip_whitelist.txt|grep -v '^#'); do
             ipset_add_chinaip $ip
         done
     fi

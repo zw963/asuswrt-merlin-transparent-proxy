@@ -6,7 +6,7 @@ echo 'Update IP whitelist ...'
 
 /opt/etc/toggle_proxy.sh disable
 
-curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' > /tmp/chinadns_chnroute.txt
+curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' -o /tmp/chinadns_chnroute.txt
 
 if [ ! -f /opt/etc/chinadns_chnroute.old -a -f /opt/etc/chinadns_chnroute.txt ]; then
     mv /opt/etc/chinadns_chnroute.txt /opt/etc/chinadns_chnroute.old

@@ -8,12 +8,30 @@ else
     default_dns_ip='114.114.114.114'
 fi
 
+# 确保当切换不同的代理时, 代理自己的 ip 一定加入白名单
+remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
+ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
+
+if [ "$ipset_protocal_version" == 6 ]; then
+    ipset add CHINAIP $remote_server_ip
+else
+    ipset -q -A CHINAIP $remote_server_ip
+fi
+
 dnsmasq_dir=/opt/etc/dnsmasq.d
 
 if [ -d "$dnsmasq_dir" ]; then
     # 为默认的 /etc/dnsmasq.conf 新增配置.
     if ! grep -qs "^conf-dir=$dnsmasq_dir/,\*\.conf$" /etc/dnsmasq.conf; then
         echo "conf-dir=$dnsmasq_dir/,*.conf" >> /etc/dnsmasq.conf
+    fi
+
+    if ! grep -qs "^$" /etc/dnsmasq.conf; then
+        echo 'log-queries' >> /etc/dnsmasq.conf
+    fi
+
+    if ! grep -qs "^log-facility=/var/log/dnsmasq\.log$" /etc/dnsmasq.conf; then
+        echo 'log-facility=/var/log/dnsmasq.log' >> /etc/dnsmasq.conf
     fi
 
     accelerated=accelerated-domains.china.conf
@@ -23,19 +41,21 @@ if [ -d "$dnsmasq_dir" ]; then
     user_domain_name_whitelist=/opt/etc/user_domain_name_whitelist.txt
     user_domain_name_blocklist=/opt/etc/user_domain_name_blocklist.txt
 
+    OLDIFS="$IFS" && IFS=$'\n'
     if [ -f $user_domain_name_whitelist ]; then
         rm -f $dnsmasq_dir/whitelist-domains.china.conf
-        for i in $(cat $user_domain_name_whitelist); do
+        for i in $(cat $user_domain_name_whitelist|grep -v '^#'); do
             echo "server=/${i}/${default_dns_ip}" >> $dnsmasq_dir/whitelist-domains.china.conf
         done
     fi
 
     if [ -f $user_domain_name_blocklist ]; then
         rm -f $dnsmasq_dir/blacklist-domains.china.conf
-        for i in $(cat $user_domain_name_blocklist); do
+        for i in $(cat $user_domain_name_blocklist|grep -v '^#'); do
             echo "address=/${i}/127.0.0.1" >> $dnsmasq_dir/blocklist-domains.china.conf
         done
     fi
+    IFS=$OLDIFS
 
     if ! [ -s $dnsmasq_dir/$accelerated.bak ]; then
         /opt/etc/update_dns_whitelist
@@ -62,8 +82,8 @@ if [ -e /opt/etc/dnscrypt-proxy.sh ]; then
 
     [ "$tcp_only" == true ] && tcp_only_arg='-T'
 
-    sed -i "s#^ARGS=.*#ARGS=\"${tcp_only_arg} -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /tmp/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
+    sed -i "s#^ARGS=.*#ARGS=\"${tcp_only_arg} -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /var/log/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
 
-/opt/etc/iptables.sh
+chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh

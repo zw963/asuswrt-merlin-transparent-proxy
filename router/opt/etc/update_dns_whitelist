@@ -13,9 +13,9 @@ apple=apple.china.conf
 download_url=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master
 dnsmasq_dir=/opt/etc/dnsmasq.d
 
-wget --no-check-certificate $download_url/$accelerated -O $dnsmasq_dir/$accelerated.bak
-wget --no-check-certificate $download_url/$google -O $dnsmasq_dir/$google.bak
-wget --no-check-certificate $download_url/$apple -O $dnsmasq_dir/$apple.bak
+curl -L $download_url/$accelerated -o $dnsmasq_dir/$accelerated.bak
+curl -L $download_url/$google -o $dnsmasq_dir/$google.bak
+curl -L $download_url/$apple -o $dnsmasq_dir/$apple.bak
 
 /opt/etc/toggle_proxy.sh
 

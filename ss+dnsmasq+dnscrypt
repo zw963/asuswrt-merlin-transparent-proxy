@@ -63,11 +63,12 @@ fi
 
 opkg --autoremove remove dnscrypt-proxy
 opkg install dnscrypt-proxy
+echo '上一个命令的自动选择, 会造成这一行代码执行失败, 不要移除.'
 opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then
     # AC87U 无需安装新版的 iptables/ipset
-    echo 'skip install iptables'
+    echo 'skip install iptables command'
 else
     # AC66U, 需要额外安装新版的 iptables
     opkg install iptables
@@ -80,7 +81,7 @@ fi
 # ---------------------------------------------------
 
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
-replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
+replace_regex '"local_address".*' '"local_address":'" \"$targetip\"," /opt/etc/shadowsocks.json
 
 # 将 dnscrypt 作为 dnsmasq 的上游 DNS 服务器
 replace_regex 'server=/#/.*' 'server=/#/127.0.0.1#65053' /opt/etc/dnsmasq.d/foreign_domains.conf
@@ -103,12 +104,9 @@ add_service wan-start 'cru a run-iptables "*/3 * * * *" "/opt/etc/iptables.sh"'
 chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
 add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 
-# 星期一的 3:15 分升级域名白名单.
+# 星期一的 4:25 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist && /opt/etc/update_dns_whitelist
-add_service wan-start 'cru a update_dns_whitelist "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
-
-chmod +x /opt/etc/iptables.sh
-chmod +x /opt/etc/patch_router
+add_service wan-start 'cru a update_dns_whitelist "25 4 * * 2" "/opt/etc/update_dns_whitelist"'
 
 set +e
 /jffs/scripts/services-stop
@@ -121,7 +119,12 @@ if [ ! -f /tmp/patch_router_is_run ];then
     /opt/etc/patch_router && touch /tmp/patch_router_is_run
 fi
 '
-/opt/etc/patch_router
+
+chmod +x /opt/etc/patch_router && /opt/etc/patch_router
+
+if [ ! -f /tmp/patch_router_is_run ];then
+    /opt/etc/patch_router && touch /tmp/patch_router_is_run
+fi
 
 echo '如果无法翻墙, 按照下列步骤查错:'
 echo '1. 断掉已连接的 WiFi, 并重新连接, 看看是否可以翻墙.'
