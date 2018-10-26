@@ -53,8 +53,7 @@ HEREDOC
 
 sysctl -p
 
-# version 3.2.0 not worked with Merlin ss
-version='3.1.1'
+version='3.2.0'
 
 package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
         udns-devel libev-devel libsodium-devel haveged c-ares-devel
