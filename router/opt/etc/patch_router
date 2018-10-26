@@ -17,6 +17,7 @@ if [ "$ipset_protocal_version" == 6 ]; then
 else
     ipset -q -A CHINAIP $remote_server_ip
 fi
+/opt/etc/init.d/S22shadowsocks restart
 
 dnsmasq_dir=/opt/etc/dnsmasq.d
 
