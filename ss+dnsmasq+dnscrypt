@@ -24,6 +24,7 @@ copy router/opt/etc/update_dns_whitelist /opt/etc
 
 [ -e router/opt/etc/user_ip_whitelist.txt ] && copy router/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e router/opt/etc/user_domain_name_whitelist.txt ] && copy router/opt/etc/user_domain_name_whitelist.txt /opt/etc
+
 deploy_start
 
 # ----------------------------------------------------

@@ -39,6 +39,8 @@ if ! opkg update; then
     echo "Run \`opkg update' failed."
     echo "Run \`entware-setup.sh' to initalize entware-ng!"
     exit
+else
+    opkg upgrade
 fi
 
 if ! modprobe xt_TPROXY; then
@@ -61,11 +63,12 @@ if opkg find shadowsocks-libev |grep -qs -e '.*'; then
 elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
     opkg install shadowsocks-libev-config shadowsocks-libev-ss-redir
 fi
-# opkg install bind-dig
+
+opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then
     # AC87U 无需安装新版的 iptables/ipset
-    echo 'skip install iptables'
+    echo 'skip install iptables command'
 else
     # AC66U, 需要额外安装新版的 iptables
     opkg install iptables
@@ -104,12 +107,9 @@ add_service wan-start 'cru a run-iptables "*/3 * * * *" "/opt/etc/iptables.sh"'
 chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
 add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
 
-# 星期一的 3:15 分升级域名白名单.
+# 星期一的 4:25 分升级域名白名单.
 chmod +x /opt/etc/update_dns_whitelist && /opt/etc/update_dns_whitelist
-add_service wan-start 'cru a update_dns_whitelist "15 3 * * 2" "/opt/etc/update_dns_whitelist"'
-
-chmod +x /opt/etc/iptables.sh
-chmod +x /opt/etc/patch_router
+add_service wan-start 'cru a update_dns_whitelist "25 4 * * 2" "/opt/etc/update_dns_whitelist"'
 
 set +e
 /jffs/scripts/services-stop
@@ -122,7 +122,12 @@ if [ ! -f /tmp/patch_router_is_run ];then
     /opt/etc/patch_router && touch /tmp/patch_router_is_run
 fi
 '
-/opt/etc/patch_router
+
+chmod +x /opt/etc/patch_router && /opt/etc/patch_router
+
+if [ ! -f /tmp/patch_router_is_run ];then
+    /opt/etc/patch_router && touch /tmp/patch_router_is_run
+fi
 
 echo '如果无法翻墙, 按照下列步骤查错:'
 echo '1. 断掉已连接的 WiFi, 并重新连接, 看看是否可以翻墙.'
