@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ssh "$*" /opt/etc/toggle_proxy.sh disable
+
 self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/deploy_start.sh)" && eval "$self"
 
 export target=$1
@@ -29,8 +31,6 @@ deploy_start
 # 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
 #
 # ---------------------------------------------------
-
-/opt/etc/toggle_proxy.sh disable
 
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
 # ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
@@ -126,21 +126,18 @@ if [ ! -f /tmp/patch_router_is_run ];then
     /opt/etc/patch_router && touch /tmp/patch_router_is_run
 fi
 
-echo '如果无法翻墙, 按照下列步骤查错:'
-echo '1. 断掉已连接的 WiFi, 并重新连接, 看看是否可以翻墙.'
-echo '2. 保持 U 盘, 重启路由器, 并等待片刻, 看看是否可以翻墙.'
-echo '3. 检查 /opt/etc 下配置文件, 并运行 /jffs/scripts/services-stop; /jffs/scripts/services-start 重启所有服务'
+echo '如果无法翻墙, 按照下列步骤查错：'
+echo '1. 断掉已连接的 WiFi，并重新连接，看看是否可以翻墙。'
+echo '2. 保持 U 盘，待重启路由器完成后，等待片刻，看看是否可以翻墙。'
 echo
-echo  '如果需要重新部署.'
-echo '1. 进入管理界面, 选择格式化 jffs, 并重启'
-echo '2. 使用 entware-setup.sh 重新初始化包管理系统'
-echo '3. 使用本脚本再次部署'
+echo '升级部署:'
+echo "$0 admin@router.asus.com"
 echo
-echo  '如果无法连接路由器.'
-echo '1. 拔下 U 盘, 重启, 尝试重新连接路由器'
-echo '2. 进入管理界面, 选择格式化 jffs, 并重启'
+echo '无法连接路由器：'
+echo '1. 拔下 U 盘，重启，尝试重新连接路由器。'
+echo '2. 进入管理界面，选择格式化 jffs，插入 U 盘，并重启。'
 echo
-echo '如果希望暂时关闭翻墙.'
-echo '$ssh admin@router.asus.com /opt/etc/toggle_proxy.sh'
-echo '重新开启, 只需再次运行以上脚本.'
+echo '暂时关闭代理：'
+echo 'ssh admin@router.asus.com /opt/etc/toggle_proxy.sh'
+echo '再次运行以上脚本重新开启。'
 # reboot
