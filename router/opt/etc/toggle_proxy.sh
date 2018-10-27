@@ -2,7 +2,7 @@
 
 iptables_bak=/tmp/iptables.rules
 
-if [ ! -f $iptables_bak -o ! -f /tmp/patch_router_is_run ]; then
+if [ "$1" != 'enable' ] && [ ! -f $iptables_bak -o ! -f /tmp/patch_router_is_run ]; then
     # 如果不存在 iptables 备份文件, 表示未部署过, 无需 toggle proxy.
     exit
 fi
