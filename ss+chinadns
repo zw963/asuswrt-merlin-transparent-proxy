@@ -16,6 +16,7 @@ fi
 copy router/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy router/opt/etc/iptables.sh /opt/etc
 copy router/opt/etc/toggle_proxy.sh /opt/etc
+copy router/opt/etc/switch_proxy.sh /opt/etc
 copy router/opt/etc/patch_router /opt/etc
 copy router/opt/etc/restart_dnsmasq /opt/etc
 copy router/opt/etc/shadowsocks.json /opt/etc
