@@ -41,6 +41,19 @@ if [ -d "$dnsmasq_dir" ]; then
 
     user_domain_name_whitelist=/opt/etc/user_domain_name_whitelist.txt
     user_domain_name_blocklist=/opt/etc/user_domain_name_blocklist.txt
+    user_domain_name_gfwlist=/opt/etc/user_domain_name_gfwlist.txt
+
+    if ! [ -s $dnsmasq_dir/$accelerated.bak ]; then
+        /opt/etc/update_dns_whitelist
+    fi
+
+    if ! [ -s /opt/etc/chinadns_chnroute.txt ]; then
+        /opt/etc/update_ip_whitelist
+    fi
+
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$accelerated.bak > $dnsmasq_dir/$accelerated
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$google.bak > $dnsmasq_dir/$google
+    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$apple.bak > $dnsmasq_dir/$apple
 
     OLDIFS="$IFS" && IFS=$'\n'
     if [ -f $user_domain_name_whitelist ]; then
@@ -56,19 +69,15 @@ if [ -d "$dnsmasq_dir" ]; then
             echo "address=/${i}/127.0.0.1" >> $dnsmasq_dir/blocklist-domains.china.conf
         done
     fi
+
+    if [ -f $user_domain_name_gfwlist ]; then
+        for i in $(cat $user_domain_name_gfwlist|grep -v '^#'); do
+            sed -i "/server=\/${i}\/.*/d" $dnsmasq_dir/$accelerated
+            sed -i "/server=\/${i}\/.*/d" $dnsmasq_dir/$google
+            sed -i "/server=\/${i}\/.*/d" $dnsmasq_dir/$apple
+        done
+    fi
     IFS=$OLDIFS
-
-    if ! [ -s $dnsmasq_dir/$accelerated.bak ]; then
-        /opt/etc/update_dns_whitelist
-    fi
-
-    if ! [ -s /opt/etc/chinadns_chnroute.txt ]; then
-        /opt/etc/update_ip_whitelist
-    fi
-
-    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$accelerated.bak > $dnsmasq_dir/$accelerated
-    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$google.bak > $dnsmasq_dir/$google
-    sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$apple.bak > $dnsmasq_dir/$apple
 
     chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 fi
