@@ -1,5 +1,6 @@
 #!/bin/sh
 
+set -x
 iptables_bak=/tmp/iptables.rules
 
 if [ "$1" != 'enable' ] && [ ! -f $iptables_bak -o ! -f /tmp/patch_router_is_run ]; then
@@ -9,7 +10,7 @@ fi
 
 if [ "$1" == 'disable' ] || [ -x /opt/etc/iptables.sh ]; then
     echo 'Disable proxy ...'
-    
+
     ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
     ip route flush table 100
@@ -18,12 +19,12 @@ if [ "$1" == 'disable' ] || [ -x /opt/etc/iptables.sh ]; then
         alias iptables='/usr/sbin/iptables'
         ipset destroy CHINAIP 2>/dev/null
         ipset destroy CHINAIPS 2>/dev/null
-        iptables-restore < $iptables_bak
+        /usr/sbin/iptables-restore < $iptables_bak
     else
         alias iptables='/opt/sbin/iptables'
         ipset -X CHINAIP 2>/dev/null
         ipset -X CHINAIPS 2>/dev/null
-        /usr/sbin/iptables-restore < $iptables_bak
+        /opt/sbin/iptables-restore < $iptables_bak
     fi
 
     chmod -x /opt/etc/iptables.sh

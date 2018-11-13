@@ -14,13 +14,11 @@ local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -
 
 echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
 
-# 如果没有备份 iptables rule, 就备份它.
-[ -f /tmp/iptables.rules ] || iptables-save > /tmp/iptables.rules
-
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 if [ "$ipset_protocal_version" == 6 ]; then
     alias iptables='/usr/sbin/iptables'
+    alias iptables_save='/usr/sbin/iptables-save'
     modprobe ip_set
     modprobe ip_set_hash_net
     modprobe ip_set_hash_ip
@@ -32,6 +30,7 @@ if [ "$ipset_protocal_version" == 6 ]; then
     alias ipset_add_chinaips='ipset add CHINAIPS'
 else
     alias iptables='/opt/sbin/iptables'
+    alias iptables_save='/opt/sbin/iptables-save'
     modprobe ip_set
     modprobe ip_set_nethash
     modprobe ip_set_iphash
@@ -42,6 +41,9 @@ else
     alias ipset_add_chinaip='ipset -q -A CHINAIP'
     alias ipset_add_chinaips='ipset -q -A CHINAIPS'
 fi
+
+# 如果没有备份 iptables rule, 就备份它.
+[ -f /tmp/iptables.rules ] || iptables_save > /tmp/iptables.rules
 
 OLDIFS="$IFS" && IFS=$'\n'
 if ipset -L CHINAIPS &>/dev/null; then
