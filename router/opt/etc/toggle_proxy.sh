@@ -1,6 +1,5 @@
 #!/bin/sh
 
-set -x
 iptables_bak=/tmp/iptables.rules
 
 if [ "$1" != 'enable' ] && [ ! -f $iptables_bak -o ! -f /tmp/patch_router_is_run ]; then
