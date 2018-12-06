@@ -4,6 +4,8 @@ ssh "$*" /opt/etc/toggle_proxy.sh disable
 
 self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/deploy_start.sh)" && eval "$self"
 
+# self="$(cat ~/Project/deployment_bash/deploy_start.sh)" && eval "$self"
+
 export target=$1
 
 if [ ! -e ./router/opt/etc/shadowsocks.json ];then
@@ -17,13 +19,15 @@ copy router/opt/etc/toggle_proxy.sh /opt/etc
 copy router/opt/etc/switch_proxy.sh /opt/etc
 copy router/opt/etc/patch_router /opt/etc
 copy router/opt/etc/restart_dnsmasq /opt/etc
-copy router/opt/etc/shadowsocks.json /opt/etc
 copy router/opt/etc/localips /opt/etc
 copy router/opt/etc/update_ip_whitelist /opt/etc
 copy router/opt/etc/update_dns_whitelist /opt/etc
 
+copy router/opt/etc/shadowsocks.* /opt/etc
 [ -e router/opt/etc/user_ip_whitelist.txt ] && copy router/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e router/opt/etc/user_domain_name_whitelist.txt ] && copy router/opt/etc/user_domain_name_whitelist.txt /opt/etc
+[ -e router/opt/etc/user_domain_name_blocklist.txt ] && copy router/opt/etc/user_domain_name_blocklist.txt /opt/etc
+[ -e router/opt/etc/user_domain_name_gfwlist.txt ] && copy router/opt/etc/user_domain_name_gfwlist.txt /opt/etc
 
 deploy_start
 
@@ -84,8 +88,8 @@ fi
 # 确保 shadowsocks.json 中的 local_address 替换为路由器 ip 地址。
 replace_regex '"local_address".*' '"local_address":'"\"$targetip\"," /opt/etc/shadowsocks.json
 
-# 直接使用 8.8.8.8#53 查询 DNS, 目标地址会通过 ss-redir 转发到 ss-server 执行.
-replace_regex 'server=/#/.*' 'server=/#/8.8.8.8#53' /opt/etc/dnsmasq.d/foreign_domains.conf
+# 直接使用 8.8.4.4#53 查询 DNS, 目标地址会通过 ss-redir 转发到 ss-server 执行.
+replace_regex 'server=/#/.*' 'server=/#/8.8.4.4#53' /opt/etc/dnsmasq.d/foreign_domains.conf
 
 # 开启 udp delay
 replace_string 'ARGS="-c /opt/etc/shadowsocks.json"' 'ARGS="-u -c /opt/etc/shadowsocks.json"' /opt/etc/init.d/S22shadowsocks
