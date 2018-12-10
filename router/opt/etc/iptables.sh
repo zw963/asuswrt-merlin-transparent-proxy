@@ -126,10 +126,10 @@ iptables -t mangle -A SHADOWSOCKS_UDP -p udp --dport 53 -j TPROXY --on-port $loc
 
 # 猜测:
 # 1. 这一步执行真正的 set-mark 操作.
-# 2. dnsmasq 会转发所有国内域名之外的域名查询请求到 8.8.8.8(在 dnsmasq 配置中有配置),
-#    所有目的地 ip 为 8.8.8.8, 端口为 53 的数据包都将会 setmark 1.
-# 3. 这意味着所有的 DNS 数据包都被发往 ss-redir 端口 在 VPS 使用 8.8.8.8 来解析.
-iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.8.8 --dport 53 -j MARK --set-mark 1
+# 2. dnsmasq 会转发所有国内域名之外的域名查询请求到 8.8.4.4(在 dnsmasq 配置中有配置),
+#    所有目的地 ip 为 8.8.4.4, 端口为 53 的数据包都将会 setmark 1.
+# 3. 这意味着所有的 DNS 数据包都被发往 ss-redir 端口 在 VPS 使用 8.8.4.4 来解析.
+iptables -t mangle -A SHADOWSOCKS_MARK -p udp -d 8.8.4.4 --dport 53 -j MARK --set-mark 1
 
 # apply udp rule
 
