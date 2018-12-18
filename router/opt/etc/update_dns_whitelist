@@ -1,22 +1,29 @@
 #!/bin/sh
 
-set -e
+function update_dns_whitelist () {
+    set -e
+    echo 'Update DNS whitelist ...'
 
-echo 'Update DNS whitelist ...'
+    /opt/etc/toggle_proxy.sh disable
 
-/opt/etc/toggle_proxy.sh disable
+    accelerated=accelerated-domains.china.conf
+    google=google.china.conf
+    apple=apple.china.conf
 
-accelerated=accelerated-domains.china.conf
-google=google.china.conf
-apple=apple.china.conf
+    download_url=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master
+    dnsmasq_dir=/opt/etc/dnsmasq.d
 
-download_url=https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master
-dnsmasq_dir=/opt/etc/dnsmasq.d
+    curl -L $download_url/$accelerated -o $dnsmasq_dir/$accelerated.bak
+    curl -L $download_url/$google -o $dnsmasq_dir/$google.bak
+    curl -L $download_url/$apple -o $dnsmasq_dir/$apple.bak
 
-curl -L $download_url/$accelerated -o $dnsmasq_dir/$accelerated.bak
-curl -L $download_url/$google -o $dnsmasq_dir/$google.bak
-curl -L $download_url/$apple -o $dnsmasq_dir/$apple.bak
+    /opt/etc/toggle_proxy.sh
 
-/opt/etc/toggle_proxy.sh
+    echo 'Update DNS whitelist done.'
+}
 
-echo 'Update DNS whitelist done.'
+if [ -t 1 ]; then
+    update_dns_whitelist
+else
+    update_dns_whitelist >> /var/log/update_dns_whitelist.log
+fi

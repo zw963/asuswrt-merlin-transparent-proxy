@@ -1,23 +1,29 @@
 #!/bin/sh
 
-set -e
+function update_ip_whitelist () {
+    set -e
 
-echo 'Update IP whitelist ...'
+    echo 'Update IP whitelist ...'
 
-/opt/etc/toggle_proxy.sh disable
+    /opt/etc/toggle_proxy.sh disable
 
-curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' -o /tmp/chinadns_chnroute.txt
+    curl -L 'http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' -o /tmp/chinadns_chnroute.txt
 
-if [ ! -f /opt/etc/chinadns_chnroute.old -a -f /opt/etc/chinadns_chnroute.txt ]; then
-    mv /opt/etc/chinadns_chnroute.txt /opt/etc/chinadns_chnroute.old
+    if [ ! -f /opt/etc/chinadns_chnroute.old -a -f /opt/etc/chinadns_chnroute.txt ]; then
+        mv /opt/etc/chinadns_chnroute.txt /opt/etc/chinadns_chnroute.old
+    fi
+
+    cat /tmp/chinadns_chnroute.txt | awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /opt/etc/chinadns_chnroute.txt
+
+    [ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart
+
+    /opt/etc/toggle_proxy.sh
+
+    echo 'Update IP whitelist done.'
+}
+
+if [ -t 1 ]; then
+    update_ip_whitelist
+else
+    update_ip_whitelist >> /var/log/update_ip_whitelist.log
 fi
-
-cat /tmp/chinadns_chnroute.txt | awk -F\| '/CN\|ipv4/ { printf("%s/%d\n", $4, 32-log($5)/log(2)) }' > /opt/etc/chinadns_chnroute.txt
-
-[ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart
-
-/opt/etc/toggle_proxy.sh
-
-echo 'Update IP whitelist done.'
-
-exit 0
