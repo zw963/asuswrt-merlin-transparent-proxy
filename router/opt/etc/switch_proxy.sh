@@ -10,9 +10,9 @@ echo "$ss_config_files" |grep -n '.*'
 
 while read 'selected_number'; do
     selected_config=$(echo "$ss_config_files" |sed -n "${selected_number}p")
-    if [ -e $selected_config ]; then
+    if [ -e "$selected_config" ]; then
         echo "Using config [0m[33m${selected_config}[0m."
-        ln -sf $selected_config shadowsocks.json
+        ln -sf "$selected_config" shadowsocks.json
         ./patch_router
         exit
     else
