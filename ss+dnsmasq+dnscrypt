@@ -116,6 +116,8 @@ set +e
 /jffs/scripts/services-stop
 set -e
 /jffs/scripts/services-start
+# 确保即使不重启，也将 wan-start 中的任务加入 crontab
+/jffs/scripts/wan-start
 
 # 在所有服务启动之后, 运行 /opt/etc/patch_router 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
 add_service services-start '
