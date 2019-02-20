@@ -1,5 +1,6 @@
 #!/bin/sh
 
+iptables -t nat -N SHADOWSOCKS_TCP 2>/dev/null
 # iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
 # 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
 if iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; then
