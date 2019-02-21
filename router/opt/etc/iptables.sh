@@ -1,8 +1,26 @@
 #!/bin/sh
 
-iptables -t nat -N SHADOWSOCKS_TCP 2>/dev/null
+remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
+local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
+local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
+
+function run_tcp_rule () {
+    # 两个 ipset 中的 ip 直接返回.
+    iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
+    iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETURN
+    # 否则, 重定向到 ss-redir
+    iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
+
+    # Apply tcp rule
+    iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS_TCP
+    # 从路由器内访问时, 也是用这个 rule.
+    # iptables -t nat -A OUTPUT -p tcp -j SHADOWSOCKS_TCP
+}
+
 # iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
 # 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
+iptables -t nat -N SHADOWSOCKS_TCP 2>/dev/null
+
 if iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; then
     # 如果已经执行过了, 直接退出.
     # 经过测试, 梅林还是会经常删除自定义 iptables, 所以, 还是需要反复执行这个文件来确保有效.
@@ -10,7 +28,7 @@ if iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; then
 fi
 
 if [ -e /tmp/proxy_is_disable ]; then
-    iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS_TCP
+    run_tcp_rule
 
     if ! modprobe xt_TPROXY 2>/dev/null; then
         exit 0
@@ -20,11 +38,6 @@ if [ -e /tmp/proxy_is_disable ]; then
 
     exit 0
 fi
-
-
-remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
-local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
 
 echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
 
@@ -89,16 +102,7 @@ IFS=$OLDIFS
 
 # ====================== tcp rule =======================
 
-# 两个 ipset 中的 ip 直接返回.
-iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
-iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETURN
-# 否则, 重定向到 ss-redir
-iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
-
-# Apply tcp rule
-iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS_TCP
-# 从路由器内访问时, 也是用这个 rule.
-# iptables -t nat -A OUTPUT -p tcp -j SHADOWSOCKS_TCP
+run_tcp_rule
 
 # ====================== udp rule =======================
 
