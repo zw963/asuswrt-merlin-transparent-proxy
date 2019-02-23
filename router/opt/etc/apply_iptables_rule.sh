@@ -1,5 +1,7 @@
 #!/bin/sh
 
+/opt/etc/clean_iptables_rule.sh
+
 echo '[0m[33mApply iptables rule ...[0m'
 
 if iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; then

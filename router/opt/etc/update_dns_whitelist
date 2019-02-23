@@ -17,7 +17,7 @@ function update_dns_whitelist () {
     curl -L $download_url/$google -o $dnsmasq_dir/$google.bak
     curl -L $download_url/$apple -o $dnsmasq_dir/$apple.bak
 
-    /opt/etc/toggle_proxy.sh
+    /opt/etc/toggle_proxy.sh enable
 
     echo '[0m[33mUpdate DNS whitelist done.[0m'
 }

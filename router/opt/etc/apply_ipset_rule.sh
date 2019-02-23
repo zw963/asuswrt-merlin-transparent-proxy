@@ -30,7 +30,7 @@ if ipset -L CHINAIPS &>/dev/null; then
     count=$(ipset -L CHINAIPS |wc -l)
 
     if [ "$count" -lt "8000" ]; then
-        echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
+        echo '[0m[33mApplying China ipset rule, it maybe take several minute to finish ...[0m'
 
         for ip in $(cat /opt/etc/chinadns_chnroute.txt |grep -v '^#'); do
             ipset_add_chinaips $ip

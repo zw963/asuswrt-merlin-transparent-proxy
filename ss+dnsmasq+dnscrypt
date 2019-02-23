@@ -109,11 +109,11 @@ chmod +x apply_ipset_rule.sh \
       clean_iptables_rule.sh \
       patch_router \
       restart_dnsmasq \
-      toggle_proxy \
-      switch_proxy \
+      toggle_proxy.sh \
+      switch_proxy.sh \
       update_dns_whitelist \
       update_ip_whitelist \
-      /jffs/scripts/wan-start
+      /jffs/scripts/services-start
 
 # ----------------------------------------------------
 #
