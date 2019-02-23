@@ -27,6 +27,7 @@ until [ -x "$RC" ] ; do
 done
 $RC start
 HEREDOC
-exit
 
-echo '' > /jffs/scripts/wan-start
+rm -f /jffs/scripts/wan-start /jffs/scripts/dhcpc-event
+
+restart
