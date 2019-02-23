@@ -15,7 +15,9 @@ fi
 
 copy router/opt/etc/dnscrypt-proxy.sh /opt/etc
 copy router/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
-copy router/opt/etc/iptables.sh /opt/etc
+copy router/opt/etc/apply_ipset_rule.sh /opt/etc
+copy router/opt/etc/apply_iptables_rule.sh /opt/etc
+copy router/opt/etc/clean_iptables_rule.sh /opt/etc
 copy router/opt/etc/toggle_proxy.sh /opt/etc
 copy router/opt/etc/switch_proxy.sh /opt/etc
 copy router/opt/etc/patch_router /opt/etc
@@ -41,6 +43,7 @@ deploy_start
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
 # ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
 
+set -x
 if ! opkg update; then
     echo "Run \`opkg update' failed."
     echo "Run \`entware-setup.sh' to initalize entware-ng!"
@@ -101,8 +104,8 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
-# 每隔 3 分钟检测下 iptables 是否失效.
-add_service wan-start 'cru a run-iptables "*/3 * * * *" "/opt/etc/iptables.sh"'
+# dhcp 重新分配新外网地址的时候, 重新应用 iptables.sh
+add_service dhcpc-event '/opt/etc/apply_iptables_rule.sh'
 
 # 星期一的 3:25 分升级 IP 白名单.
 chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
@@ -121,15 +124,13 @@ set -e
 
 # 在所有服务启动之后, 运行 /opt/etc/patch_router 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
 add_service services-start '
-if [ ! -f /tmp/patch_router_is_run ];then
-    /opt/etc/patch_router && touch /tmp/patch_router_is_run
-fi
+[ -f /tmp/patch_router_is_run ] || /opt/etc/patch_router
 '
 
-chmod +x /opt/etc/patch_router && /opt/etc/patch_router
-
 if [ ! -f /tmp/patch_router_is_run ];then
-    /opt/etc/patch_router && touch /tmp/patch_router_is_run
+    chmod +x /opt/etc/patch_router &&
+        /opt/etc/patch_router &&
+        touch /tmp/patch_router_is_run
 fi
 
 echo '如果无法翻墙, 按照下列步骤查错：'

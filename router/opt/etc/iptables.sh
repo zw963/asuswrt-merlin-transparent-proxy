@@ -1,24 +1,14 @@
 #!/bin/sh
 
-# iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
-# 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
-if ! iptables -t nat -N SHADOWSOCKS_TCP; then
-    # 如果不成功, 表示已经执行过了, 直接退出.
-    # 经过测试, 梅林还是会经常删除自定义 iptables, 所以, 还是需要反复执行这个文件来确保有效.
-    exit
-fi
-
+set -x
 remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
-
-echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
 
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
 
 if [ "$ipset_protocal_version" == 6 ]; then
     alias iptables='/usr/sbin/iptables'
-    alias iptables_save='/usr/sbin/iptables-save'
     modprobe ip_set
     modprobe ip_set_hash_net
     modprobe ip_set_hash_ip
@@ -30,7 +20,6 @@ if [ "$ipset_protocal_version" == 6 ]; then
     alias ipset_add_chinaips='ipset add CHINAIPS'
 else
     alias iptables='/opt/sbin/iptables'
-    alias iptables_save='/opt/sbin/iptables-save'
     modprobe ip_set
     modprobe ip_set_nethash
     modprobe ip_set_iphash
@@ -42,9 +31,42 @@ else
     alias ipset_add_chinaips='ipset -q -A CHINAIPS'
 fi
 
-# 如果没有备份 iptables rule, 就备份它.
-[ -f /tmp/iptables.rules ] || iptables_save > /tmp/iptables.rules
+function run_tcp_rule () {
+    # 两个 ipset 中的 ip 直接返回.
+    iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
+    iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETURN
+    # 否则, 重定向到 ss-redir
+    iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
 
+    # Apply tcp rule
+    iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS_TCP
+    # 从路由器内访问时, 也是用这个 rule.
+    # iptables -t nat -A OUTPUT -p tcp -j SHADOWSOCKS_TCP
+}
+
+# iptables 默认有四个表: raw, nat, mangle, filter, 每个表都有若干个不同的 chain.
+# 例如: filter 表包含 INPUT, FORWARD, OUTPUT 三个链, 下面创建了一个自定义 chain.
+iptables -t nat -N SHADOWSOCKS_TCP 2>/dev/null
+
+if iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; then
+    # 如果已经执行过了, 直接退出.
+    # 经过测试, 梅林还是会经常删除自定义 iptables, 所以, 还是需要反复执行这个文件来确保有效.
+    exit 0
+fi
+
+if [ -e /tmp/proxy_is_disable ]; then
+    run_tcp_rule
+
+    if ! modprobe xt_TPROXY 2>/dev/null; then
+        exit 0
+    fi
+
+    iptables -t mangle -A PREROUTING -p udp -j SHADOWSOCKS_UDP
+
+    exit 0
+fi
+
+echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
 OLDIFS="$IFS" && IFS=$'\n'
 if ipset -L CHINAIPS &>/dev/null; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
@@ -80,16 +102,7 @@ IFS=$OLDIFS
 
 # ====================== tcp rule =======================
 
-# 两个 ipset 中的 ip 直接返回.
-iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIPS dst -j RETURN
-iptables -t nat -A SHADOWSOCKS_TCP -p tcp -m set --match-set CHINAIP dst -j RETURN
-# 否则, 重定向到 ss-redir
-iptables -t nat -A SHADOWSOCKS_TCP -p tcp -j REDIRECT --to-ports $local_redir_port
-
-# Apply tcp rule
-iptables -t nat -A PREROUTING -p tcp -j SHADOWSOCKS_TCP
-# 从路由器内访问时, 也是用这个 rule.
-# iptables -t nat -A OUTPUT -p tcp -j SHADOWSOCKS_TCP
+run_tcp_rule
 
 # ====================== udp rule =======================
 

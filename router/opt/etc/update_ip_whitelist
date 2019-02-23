@@ -3,7 +3,7 @@
 function update_ip_whitelist () {
     set -e
 
-    echo 'Update IP whitelist ...'
+    echo '[0m[33mUpdate IP whitelist ...[0m'
 
     /opt/etc/toggle_proxy.sh disable
 
@@ -19,11 +19,13 @@ function update_ip_whitelist () {
 
     /opt/etc/toggle_proxy.sh
 
-    echo 'Update IP whitelist done.'
+    echo '[0m[33mUpdate IP whitelist done.[0m'
 }
 
-if [ -t 1 ]; then
-    update_ip_whitelist
-else
-    update_ip_whitelist >> /var/log/update_ip_whitelist.log
-fi
+update_ip_whitelist
+
+# if [ -t 1 ]; then
+#     update_ip_whitelist
+# else
+#     update_ip_whitelist >> /var/log/update_ip_whitelist.log
+# fi

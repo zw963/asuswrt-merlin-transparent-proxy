@@ -27,6 +27,8 @@ until [ -x "$RC" ] ; do
 done
 $RC start
 HEREDOC
-exit
 
-echo '' > /jffs/scripts/wan-start
+rm -f /jffs/scripts/wan-start /jffs/scripts/dhcpc-event
+
+echo '[0m[33mRouter will reboot ...[0m'
+reboot
