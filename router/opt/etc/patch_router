@@ -82,11 +82,6 @@ if [ -d "$dnsmasq_dir" ]; then
     chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 fi
 
-if [ -e /opt/etc/init.d/S56chinadns ]; then
-    sed -i "s#-s [0-9.]*,#-s ${default_dns_ip},#" /opt/etc/init.d/S56chinadns
-    /opt/etc/init.d/S56chinadns restart
-fi
-
 if [ -e /opt/etc/dnscrypt-proxy.sh -a -e /opt/etc/init.d/S09dnscrypt-proxy ]; then
     source /opt/etc/dnscrypt-proxy.sh
 
