@@ -1,8 +1,35 @@
 #!/bin/sh
 
+set -x
 remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_ip=$(cat /opt/etc/shadowsocks.json |grep 'local_address"' |cut -d':' -f2|cut -d'"' -f2)
 local_redir_port=$(cat /opt/etc/shadowsocks.json |grep 'local_port' |cut -d':' -f2 |grep -o '[0-9]*')
+
+ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
+
+if [ "$ipset_protocal_version" == 6 ]; then
+    alias iptables='/usr/sbin/iptables'
+    modprobe ip_set
+    modprobe ip_set_hash_net
+    modprobe ip_set_hash_ip
+    modprobe xt_set
+    # 默认值 hashsize 1024 maxelem 65536, 已经足够了.
+    ipset -N CHINAIPS hash:net
+    ipset -N CHINAIP hash:ip
+    alias ipset_add_chinaip='ipset add CHINAIP'
+    alias ipset_add_chinaips='ipset add CHINAIPS'
+else
+    alias iptables='/opt/sbin/iptables'
+    modprobe ip_set
+    modprobe ip_set_nethash
+    modprobe ip_set_iphash
+    modprobe ipt_set
+    # v4 document: https://people.netfilter.org/kadlec/ipset/ipset.man.html
+    ipset -N CHINAIPS nethash
+    ipset -N CHINAIP iphash
+    alias ipset_add_chinaip='ipset -q -A CHINAIP'
+    alias ipset_add_chinaips='ipset -q -A CHINAIPS'
+fi
 
 function run_tcp_rule () {
     # 两个 ipset 中的 ip 直接返回.
@@ -40,33 +67,6 @@ if [ -e /tmp/proxy_is_disable ]; then
 fi
 
 echo '[0m[33mApplying ipset rule, it maybe take several minute to finish ...[0m'
-
-ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
-
-if [ "$ipset_protocal_version" == 6 ]; then
-    alias iptables='/usr/sbin/iptables'
-    modprobe ip_set
-    modprobe ip_set_hash_net
-    modprobe ip_set_hash_ip
-    modprobe xt_set
-    # 默认值 hashsize 1024 maxelem 65536, 已经足够了.
-    ipset -N CHINAIPS hash:net
-    ipset -N CHINAIP hash:ip
-    alias ipset_add_chinaip='ipset add CHINAIP'
-    alias ipset_add_chinaips='ipset add CHINAIPS'
-else
-    alias iptables='/opt/sbin/iptables'
-    modprobe ip_set
-    modprobe ip_set_nethash
-    modprobe ip_set_iphash
-    modprobe ipt_set
-    # v4 document: https://people.netfilter.org/kadlec/ipset/ipset.man.html
-    ipset -N CHINAIPS nethash
-    ipset -N CHINAIP iphash
-    alias ipset_add_chinaip='ipset -q -A CHINAIP'
-    alias ipset_add_chinaips='ipset -q -A CHINAIPS'
-fi
-
 OLDIFS="$IFS" && IFS=$'\n'
 if ipset -L CHINAIPS &>/dev/null; then
     # 将国内的 ip 全部加入 ipset CHINAIPS, 近 8000 条, 这个过程可能需要近一分钟时间.
