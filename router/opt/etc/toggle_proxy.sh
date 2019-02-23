@@ -1,50 +1,36 @@
 #!/bin/sh
 
-proxy_is_disable='/tmp/proxy_is_disable'
+function disable_proxy () {
+    echo '[0m[33mDisable proxy ...[0m'
 
-if [ "$1" == 'disable' ] || [ -x /opt/etc/iptables.sh ]; then
-    echo 'Disable proxy ...'
-
-    # clean iptables rule start
-    ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
-
-    if [ "$ipset_protocal_version" == 6 ]; then
-        alias iptables='/usr/sbin/iptables'
-    else
-        alias iptables='/opt/sbin/iptables'
-    fi
-
-    while iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; do
-        iptables -t nat -D PREROUTING -p tcp -j SHADOWSOCKS_TCP
-    done
-
-    iptables -t nat -F SHADOWSOCKS_TCP 2>/dev/null          # flush
-    iptables -t nat -X SHADOWSOCKS_TCP 2>/dev/null          # --delete-chain
-
-    while iptables -t mangle -C PREROUTING -p udp -j SHADOWSOCKS_UDP 2>/dev/null; do
-        iptables -t mangle -D PREROUTING -p udp -j SHADOWSOCKS_UDP
-    done
-
-    iptables -t mangle -F SHADOWSOCKS_UDP 2>/dev/null
-    iptables -t mangle -X SHADOWSOCKS_UDP 2>/dev/null
-
-    iptables -t mangle -F SHADOWSOCKS_MARK 2>/dev/null
-    iptables -t mangle -X SHADOWSOCKS_MARK 2>/dev/null
-    # clean iptables rule end
-
-    chmod -x /opt/etc/iptables.sh
-    chmod -x /opt/etc/patch_router
+    /opt/etc/clean_iptables_rule.sh
+    chmod -x /opt/etc/apply_iptables_rule.sh
 
     sed -i "s#conf-dir=/opt/etc/dnsmasq.d/,\*\.conf#\# &#" /etc/dnsmasq.conf
     /opt/etc/restart_dnsmasq
-    echo 'Proxy is disabled.'
-    touch $proxy_is_disable
-else
-    echo 'Enable proxy ...'
-    chmod +x /opt/etc/iptables.sh
-    chmod +x /opt/etc/patch_router && /opt/etc/patch_router
-    echo 'Proxy is enabled.'
-    rm $proxy_is_disable
-fi
 
-# iptables -t nat -D PREROUTING -p tcp -j SHADOWSOCKS
+    echo '[0m[33mProxy is disabled.[0m'
+}
+
+function enable_proxy () {
+    echo '[0m[33mEnable proxy ...[0m'
+
+    /opt/etc/clean_iptables_rule.sh
+    /opt/etc/apply_ipset_rule.sh
+    chmod +x /opt/etc/apply_iptables_rule.sh && /opt/etc/apply_iptables_rule.sh
+
+    sed -i "s#\# \(conf-dir=/opt/etc/dnsmasq.d/,\*\.conf\)#\\1#" /etc/dnsmasq.conf
+    /opt/etc/restart_dnsmasq
+
+    echo '[0m[33mProxy is enabled.[0m'
+}
+
+if [ "$1" == 'disable' ]; then
+    disable_proxy
+elif [ "$1" == 'enable' ]; then
+    enable_proxy
+elif [ -x /opt/etc/apply_iptables_rule.sh ]; then
+    disable_proxy
+else
+    enable_proxy
+fi

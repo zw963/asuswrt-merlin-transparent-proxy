@@ -96,4 +96,6 @@ if [ -e /opt/etc/dnscrypt-proxy.sh -a -e /opt/etc/init.d/S09dnscrypt-proxy ]; th
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
 
-chmod +x /opt/etc/iptables.sh && /opt/etc/iptables.sh
+/opt/etc/toggle_proxy.sh enable
+
+touch /tmp/patch_router_is_run
