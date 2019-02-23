@@ -30,4 +30,5 @@ HEREDOC
 
 rm -f /jffs/scripts/wan-start /jffs/scripts/dhcpc-event
 
-restart
+echo '[0m[33mRouter will reboot ...[0m'
+reboot
