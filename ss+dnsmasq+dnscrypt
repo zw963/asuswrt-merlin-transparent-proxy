@@ -98,53 +98,50 @@ replace_string ss-local ss-redir /opt/etc/init.d/S22shadowsocks
 
 # ----------------------------------------------------
 #
+# 设定脚本执行权限
+#
+# ---------------------------------------------------
+
+cd /opt/etc
+
+chmod +x apply_ipset_rule.sh \
+      apply_iptables_rule.sh \
+      clean_iptables_rule.sh \
+      patch_router \
+      restart_dnsmasq \
+      toggle_proxy \
+      switch_proxy \
+      update_dns_whitelist \
+      update_ip_whitelist \
+      /jffs/scripts/wan-start
+
+# ----------------------------------------------------
+#
 # 启动所需的脚本
 #
 # ---------------------------------------------------
 
 # 每隔 1 分钟检测下所有的服务是否运行.
 add_service wan-start 'cru a run-services "*/1 * * * *" "/jffs/scripts/services-start"'
-# dhcp 重新分配新外网地址的时候, 重新应用 iptables.sh
-add_service dhcpc-event '/opt/etc/apply_iptables_rule.sh'
-
 # 星期一的 3:25 分升级 IP 白名单.
-chmod +x /opt/etc/update_ip_whitelist && /opt/etc/update_ip_whitelist
 add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_ip_whitelist"'
-
 # 星期一的 4:25 分升级域名白名单.
-chmod +x /opt/etc/update_dns_whitelist && /opt/etc/update_dns_whitelist
 add_service wan-start 'cru a update_dns_whitelist "25 4 * * 2" "/opt/etc/update_dns_whitelist"'
+# 确保即使不重启，也将 wan-start 中的任务加入 crontab
+/jffs/scripts/wan-start
+
+# 更新 IP 白名单和 DNS 白名单.
+/opt/etc/update_ip_whitelist
+/opt/etc/update_dns_whitelist
+
+# 如果 DHCP 重新分配 IP 地址时, 会清除 iptables rule, 此时重新应用 iptables
+add_service dhcpc-event '/opt/etc/apply_iptables_rule.sh'
 
 set +e
 /jffs/scripts/services-stop
 set -e
 /jffs/scripts/services-start
-# 确保即使不重启，也将 wan-start 中的任务加入 crontab
-/jffs/scripts/wan-start
 
 # 在所有服务启动之后, 运行 /opt/etc/patch_router 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
-add_service services-start '
-[ -f /tmp/patch_router_is_run ] || /opt/etc/patch_router
-'
-
-if [ ! -f /tmp/patch_router_is_run ];then
-    chmod +x /opt/etc/patch_router &&
-        /opt/etc/patch_router &&
-        touch /tmp/patch_router_is_run
-fi
-
-echo '如果无法翻墙, 按照下列步骤查错：'
-echo '1. 断掉已连接的 WiFi，并重新连接，看看是否可以翻墙。'
-echo '2. 保持 U 盘，待重启路由器完成后，等待片刻，看看是否可以翻墙。'
-echo
-echo '升级部署:'
-echo "$0 admin@router.asus.com"
-echo
-echo '无法连接路由器：'
-echo '1. 拔下 U 盘，重启，尝试重新连接路由器。'
-echo '2. 进入管理界面，选择格式化 jffs，插入 U 盘，并重启。'
-echo
-echo '暂时关闭代理：'
-echo 'ssh admin@router.asus.com /opt/etc/toggle_proxy.sh'
-echo '再次运行以上脚本重新开启。'
-# reboot
+add_service services-start '[ -f /tmp/patch_router_is_run ] || /opt/etc/patch_router'
+/opt/etc/patch_router
