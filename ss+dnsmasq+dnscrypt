@@ -43,7 +43,6 @@ deploy_start
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
 # ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
 
-set -x
 if ! opkg update; then
     echo "Run \`opkg update' failed."
     echo "Run \`entware-setup.sh' to initalize entware-ng!"
