@@ -12,13 +12,7 @@ This project is for config you asus router (merlin based) to serve as a transpar
 
 ## Feature
 
-[ss+chinadns](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/v0.3.6/ss%2Bchinadns)
-
-[ss+chinadns+dnscrypt](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/v0.3.6/ss%2Bchinadns%2Bdnscrypt)
-
 [ss+dnsmasq+dnscrypt](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/v0.3.6/ss%2Bdnsmasq%2Bdnscrypt)
-
-[ss+dnsmasq+udprelay](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/v0.3.6/ss%2Bdnsmasq%2Budprelay)
 
 For details, please see [Wiki](https://github.com/zw963/asuswrt-merlin-transparent-proxy/wiki) link.
 

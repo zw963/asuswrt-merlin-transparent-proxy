@@ -2,6 +2,8 @@
 
 echo '[0m[33mApply ipset rule ...[0m'
 
+ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
+
 if [ "$ipset_protocal_version" == 6 ]; then
     modprobe ip_set
     modprobe ip_set_hash_net
