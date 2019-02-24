@@ -1,13 +1,5 @@
 #!/bin/sh
 
-resolv_file=$(cat /etc/dnsmasq.conf |grep 'resolv-file=' |tail -n1 |cut -d'=' -f2)
-
-if [ "$resolv_file" ]; then
-    default_dns_ip=$(cat $resolv_file |head -n1 |cut -d' ' -f2)
-else
-    default_dns_ip='114.114.114.114'
-fi
-
 # 确保当切换不同的代理时, 代理自己的 ip 一定加入白名单
 remote_server_ip=$(cat /opt/etc/shadowsocks.json |grep 'server"' |cut -d':' -f2|cut -d'"' -f2)
 ipset_protocal_version=$(ipset -v |grep -o 'version.*[0-9]' |head -n1 |cut -d' ' -f2)
@@ -27,10 +19,12 @@ if [ -d "$dnsmasq_dir" ]; then
         echo "conf-dir=$dnsmasq_dir/,*.conf" >> /etc/dnsmasq.conf
     fi
 
+    # 开启日志.
     if ! grep -qs "^log-queries$" /etc/dnsmasq.conf; then
         echo 'log-queries' >> /etc/dnsmasq.conf
     fi
 
+    # 输出日志到 /var/log/dnsmasq.log
     if ! grep -qs "^log-facility=/var/log/dnsmasq\.log$" /etc/dnsmasq.conf; then
         echo 'log-facility=/var/log/dnsmasq.log' >> /etc/dnsmasq.conf
     fi
@@ -50,6 +44,8 @@ if [ -d "$dnsmasq_dir" ]; then
     if ! [ -s /opt/etc/chinadns_chnroute.txt ]; then
         /opt/etc/update_ip_whitelist
     fi
+
+    default_dns_ip=127.0.0.1
 
     sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$accelerated.bak > $dnsmasq_dir/$accelerated
     sed "s#114\.114\.114\.114#${default_dns_ip}#" $dnsmasq_dir/$google.bak > $dnsmasq_dir/$google
@@ -82,10 +78,8 @@ if [ -d "$dnsmasq_dir" ]; then
     chmod +x /opt/etc/restart_dnsmasq && /opt/etc/restart_dnsmasq
 fi
 
-if [ -e /opt/etc/init.d/S56chinadns ]; then
-    sed -i "s#-s [0-9.]*,#-s ${default_dns_ip},#" /opt/etc/init.d/S56chinadns
-    /opt/etc/init.d/S56chinadns restart
-fi
+/opt/etc/apply_ipset_rule.sh
+/opt/etc/toggle_proxy.sh enable
 
 if [ -e /opt/etc/dnscrypt-proxy.sh -a -e /opt/etc/init.d/S09dnscrypt-proxy ]; then
     source /opt/etc/dnscrypt-proxy.sh
@@ -95,7 +89,5 @@ if [ -e /opt/etc/dnscrypt-proxy.sh -a -e /opt/etc/init.d/S09dnscrypt-proxy ]; th
     sed -i "s#^ARGS=.*#ARGS=\"${tcp_only_arg} -a 127.0.0.1:65053 -r ${resolver_address_with_port} -N ${provider_name} -k ${provider_key} -l /var/log/dnscrypt-proxy.log\"#" /opt/etc/init.d/S09dnscrypt-proxy
     /opt/etc/init.d/S09dnscrypt-proxy restart
 fi
-
-/opt/etc/toggle_proxy.sh enable
 
 touch /tmp/patch_router_is_run

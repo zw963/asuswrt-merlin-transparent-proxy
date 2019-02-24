@@ -17,7 +17,7 @@ function update_ip_whitelist () {
 
     [ -f /opt/etc/init.d/S56chinadns ] && /opt/etc/init.d/S56chinadns restart
 
-    /opt/etc/toggle_proxy.sh
+    /opt/etc/toggle_proxy.sh enable
 
     echo '[0m[33mUpdate IP whitelist done.[0m'
 }
