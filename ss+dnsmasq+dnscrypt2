@@ -68,6 +68,7 @@ elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
     opkg install shadowsocks-libev-config shadowsocks-libev-ss-redir
 fi
 
+opkg --autoremove remove dnscrypt-proxy
 opkg install dnscrypt-proxy2_nohf
 opkg install bind-dig
 
