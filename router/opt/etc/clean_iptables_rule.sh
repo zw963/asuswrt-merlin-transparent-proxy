@@ -17,14 +17,4 @@ done
 iptables -t nat -F SHADOWSOCKS_TCP 2>/dev/null          # flush
 iptables -t nat -X SHADOWSOCKS_TCP 2>/dev/null          # --delete-chain
 
-while iptables -t mangle -C PREROUTING -p udp -j SHADOWSOCKS_UDP 2>/dev/null; do
-    iptables -t mangle -D PREROUTING -p udp -j SHADOWSOCKS_UDP
-done
-
-iptables -t mangle -F SHADOWSOCKS_UDP 2>/dev/null
-iptables -t mangle -X SHADOWSOCKS_UDP 2>/dev/null
-
-iptables -t mangle -F SHADOWSOCKS_MARK 2>/dev/null
-iptables -t mangle -X SHADOWSOCKS_MARK 2>/dev/null
-
 echo '[0m[33mClean iptables rule done.[0m'
