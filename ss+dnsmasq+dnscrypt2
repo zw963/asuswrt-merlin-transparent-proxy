@@ -13,7 +13,7 @@ if [ ! -e ./router/opt/etc/shadowsocks.json ];then
     exit
 fi
 
-copy router/opt/etc/dnscrypt-proxy.sh /opt/etc
+copy router/opt/etc/dnscrypt-proxy.toml /opt/etc
 copy router/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
 copy router/opt/etc/apply_ipset_rule.sh /opt/etc
 copy router/opt/etc/apply_iptables_rule.sh /opt/etc
@@ -43,6 +43,7 @@ deploy_start
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
 # ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
 
+set -x
 if ! opkg update; then
     echo "Run \`opkg update' failed."
     echo "Run \`entware-setup.sh' to initalize entware-ng!"
@@ -68,8 +69,7 @@ elif opkg find shadowsocks-libev-ss-redir |grep -qs -e '.*'; then
 fi
 
 opkg --autoremove remove dnscrypt-proxy
-opkg install dnscrypt-proxy
-echo '上一个命令的自动选择, 会造成这一行代码执行失败, 不要移除.'
+opkg install dnscrypt-proxy2_nohf
 opkg install bind-dig
 
 if [ "$ipset_protocal_version" == 6 ]; then

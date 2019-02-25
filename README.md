@@ -13,6 +13,7 @@ This project is for config you asus router (merlin based) to serve as a transpar
 ## Feature
 
 [ss+dnsmasq+dnscrypt](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/v0.3.6/ss%2Bdnsmasq%2Bdnscrypt)
+[ss+dnsmasq+dnscrypt2](https://github.com/zw963/asuswrt-merlin-transparent-proxy/blob/v0.3.6/ss%2Bdnsmasq%2Bdnscrypt2)
 
 For details, please see [Wiki](https://github.com/zw963/asuswrt-merlin-transparent-proxy/wiki) link.
 
