@@ -83,7 +83,8 @@ fi
 # 下载 v2ray 插件.
 v2ray_version='1.1.0'
 
-wget https://github.com/shadowsocks/v2ray-plugin/releases/download/v${v2ray_version}/v2ray-plugin-linux-arm-v${v2ray_version}.tar.gz -O - |tar zxvf -
+wget https://github.com/shadowsocks/v2ray-plugin/releases/download/v${v2ray_version}/v2ray-plugin-linux-arm-v${v2ray_version}.tar.gz -O /tmp/v2ray.tar.gz
+tar zxvf /tmp/v2ray.tar.gz
 cp v2ray-plugin_linux_arm5 /opt/etc/
 
 # ----------------------------------------------------
