@@ -1,12 +1,12 @@
+server_names = ['ea-dns.rubyfish.cn', 'uw-dns.rubyfish.cn']
 listen_addresses = ['127.0.0.1:65053']
 tls_cipher_suite = [52392, 49199]
 block_ipv6 = true
 #force_tcp = true
 
-server_names = ['ea-dns.rubyfish.cn', 'uw-dns.rubyfish.cn']
 [static]
 [static.'ea-dns.rubyfish.cn']
-stamp = 'sdns://AgQAAAAAAAAADzExNS4xNTkuMTU0LjIyNgAPZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
+stamp = 'sdns://AgUAAAAAAAAAAAASZWEtZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
 
 [static.'uw-dns.rubyfish.cn']
-stamp = 'sdns://AgQAAAAAAAAADDQ3Ljk5LjE2NS4zMQAPZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
+stamp = 'sdns://AgUAAAAAAAAAAAASdXctZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
