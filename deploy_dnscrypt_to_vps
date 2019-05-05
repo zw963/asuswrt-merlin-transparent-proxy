@@ -1,0 +1,43 @@
+#!/bin/sh
+
+self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.8/deploy_start.sh)" && eval "$self"
+
+function dockerinit () {
+    getent group docker || groupadd -r -g 281 docker
+    dest=$1
+
+    mkdir -p $dest/bin
+    mkdir -p $dest/containers
+
+    # 最新版 url: https://download.docker.com/linux/static/stable/x86_64/
+    download_and_extract https://download.docker.com/linux/static/stable/x86_64/docker-18.09.5.tgz $dest/bin
+}
+
+if [ -z "$*" ]; then
+    dockerinit /docker
+    daemon1 docker-daemon "dockerd -g $dest/containers --userland-proxy=false" $dest/bin
+    append_file $HOME/.bashrc "PATH=$dest/bin"':$PATH'
+
+    exit 0
+fi
+
+export_variable target=$1
+export_function dockerinit
+
+deploy_start
+
+if ! which dockerd; then
+    dockerinit /docker
+
+    daemon1 docker-daemon "dockerd -g $dest/containers --userland-proxy=false" $dest/bin
+    append_file $HOME/.bashrc "PATH=$dest/bin"':$PATH'
+fi
+
+docker run -d \
+       --name=dnscrypt-server \
+       -p 22337:443/udp \
+       -p 22337:443/tcp \
+       jedisct1/dnscrypt-server \
+       init \
+       -N example_2.online \
+       -E 114.112.255.34:22337
