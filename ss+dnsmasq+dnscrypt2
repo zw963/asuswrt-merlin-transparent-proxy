@@ -2,9 +2,7 @@
 
 ssh "$*" /opt/etc/toggle_proxy.sh disable
 
-self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/deploy_start.sh)" && eval "$self"
-
-# self="$(cat ~/Project/deployment_bash/deploy_start.sh)" && eval "$self"
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.9/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -43,7 +41,6 @@ deploy_start
 # 如果第一次运行本脚本, 请务必初始化 entware 包管理系统.
 # ssh 登陆路由器, 执行 entware-setup.sh, 选择 1'
 
-set -x
 if ! opkg update; then
     echo "Run \`opkg update' failed."
     echo "Run \`entware-setup.sh' to initalize entware-ng!"
