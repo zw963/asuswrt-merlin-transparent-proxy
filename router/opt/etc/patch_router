@@ -92,7 +92,7 @@ elif [ -e /opt/etc/dnscrypt-proxy.toml -a -e /opt/etc/init.d/S09dnscrypt-proxy2 
     echo 'Use dnscrypt-proxy2 red fish source.'
     echo 'Checking config file.'
     set -e
-    dnscrypt-proxy -check /opt/etc/dnscrypt-proxy.toml
+    dnscrypt-proxy -check -config /opt/etc/dnscrypt-proxy.toml
     set +e
     /opt/etc/init.d/S09dnscrypt-proxy2 restart
 fi
