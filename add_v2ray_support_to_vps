@@ -1,0 +1,29 @@
+#!/bin/sh
+
+self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/deploy_start.sh)" && eval "$self"
+
+export target=$1
+
+deploy_start
+
+# Following code is execute on remote VPS
+
+if !which ss-server &>/dev/null ||
+        ! test -d /etc/shadowsocks/ ||
+        ! test -f /etc/systemd/system/shadowsocks.service; then
+    echo 'v2ray plugins need ss-server be deploy first, exit ...'
+    echo "do you deploy ss-server with [0m[33m./deploy_ss_to_vps $target[0m successful?"
+    exit
+fi
+
+v2ray_version='1.1.0'
+
+echo 'downloading shadowsocks v2ray plugins to /etc/shadowsocks/'
+# 下载 v2ray
+command curl -sS -L https://github.com/shadowsocks/v2ray-plugin/releases/download/v${v2ray_version}/v2ray-plugin-linux-amd64-v${v2ray_version}.tar.gz |tar -zxvf -
+mv v2ray-plugin_linux_amd64 /etc/shadowsocks/
+
+sed -i "s#\(\s*ExecStart=\).*#\\1/usr/bin/ss-server -u --fast-open --no-delay -c /etc/shadowsocks/config.json --plugin /etc/shadowsocks/v2ray-plugin_linux_amd64 --plugin-opts \"server\" -vvv#" /etc/systemd/system/shadowsocks.service
+
+systemctl daemon-reload
+systemctl restart shadowsocks
