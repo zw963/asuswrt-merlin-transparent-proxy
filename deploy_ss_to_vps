@@ -69,8 +69,15 @@ version='3.2.0'
 package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
         udns-devel libev-devel libsodium-devel rng-tools c-ares-devel
 
-systemctl start rngd
-systemctl status rngd
+# sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+if [[ -e /etc/redhat-release && $(cat /etc/redhat-release) =~ CentOS ]]; then
+    systemctl start rngd
+    systemctl status rngd
+elif [[ $(cat /etc/issue) =~ Ubuntu|Mint|Deepin ]]; then
+    service rng-tools start
+    service rng-tools status
+fi
 
 [ -d shadowsocks-libev-${version} ] || download_and_extract https://github.com/shadowsocks/shadowsocks-libev/releases/download/v${version}/shadowsocks-libev-${version}.tar.gz
 
