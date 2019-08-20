@@ -1,38 +1,18 @@
 #!/bin/sh
 
-self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.8/deploy_start.sh)" && eval "$self"
+self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.5.2/deploy_start.sh)" && eval "$self"
 
-function dockerinit () {
-    getent group docker || groupadd -r -g 281 docker
-    dest=$1
+# if [ -z "$*" ]; then
+#     dockerinit /docker
 
-    if ! test -f /docker/bin/docker; then
-        mkdir -p $dest/bin
-        mkdir -p $dest/containers
-        append_file $HOME/.bashrc "PATH=$dest/bin"':$PATH'
+#     exit 0
+# fi
 
-        # 最新版 url: https://download.docker.com/linux/static/stable/x86_64/
-        download_and_extract https://download.docker.com/linux/static/stable/x86_64/docker-18.09.5.tgz $dest/bin
-    fi
-
-    if ! test -f /etc/systemd/system/docker-dameon.service; then
-        daemon1 docker-daemon "$dest/bin/dockerd --data-root $dest/containers --userland-proxy=false" $dest/bin
-    fi
-    alias docker=/docker/bin/docker
-}
-
-if [ -z "$*" ]; then
-    dockerinit /docker
-
-    exit 0
-fi
-
-export_variable target=$1
-export_function dockerinit
+export target=$1
 
 deploy_start
 
-docker ps || dockerinit /docker
+docker ps &>/dev/null || dockerinit /docker
 
 docker rm -f dnscrypt-server
 
