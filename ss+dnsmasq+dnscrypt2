@@ -23,6 +23,7 @@ copy router/opt/etc/restart_dnsmasq /opt/etc
 copy router/opt/etc/localips /opt/etc
 copy router/opt/etc/update_ip_whitelist /opt/etc
 copy router/opt/etc/update_dns_whitelist /opt/etc
+copy router/opt/etc/enable_swap.sh /opt/etc
 
 copy router/opt/etc/shadowsocks.* /opt/etc
 [ -e router/opt/etc/user_ip_whitelist.txt ] && copy router/opt/etc/user_ip_whitelist.txt /opt/etc
@@ -109,6 +110,7 @@ chmod +x apply_ipset_rule.sh \
       switch_proxy.sh \
       update_dns_whitelist \
       update_ip_whitelist \
+      enable_swap.sh \
       /jffs/scripts/services-start
 
 # ----------------------------------------------------
@@ -125,6 +127,10 @@ add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_i
 add_service wan-start 'cru a update_dns_whitelist "25 4 * * 2" "/opt/etc/update_dns_whitelist"'
 # 确保即使不重启，也将 wan-start 中的任务加入 crontab
 /jffs/scripts/wan-start
+# 打开swap
+echo 'Enabling swap'
+/opt/etc/enable_swap.sh
+add_service post-mount '/opt/etc/enable_swap.sh'
 
 # 更新 IP 白名单和 DNS 白名单.
 /opt/etc/update_ip_whitelist
