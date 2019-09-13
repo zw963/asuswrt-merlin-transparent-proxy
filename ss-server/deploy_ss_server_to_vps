@@ -4,7 +4,7 @@ self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/depl
 
 export target=$1
 
-copy ss-server/config.json /etc/shadowsocks/config.json
+copy ss-server/server.json /etc/shadowsocks/config.json
 
 deploy_start
 
@@ -58,6 +58,7 @@ kernel_version=$(uname -r | cut -d- -f1)
 
 # 如果内核大于 4.9, 开启 bbr
 if version_ge ${kernel_version} 4.9; then
+    modprobe tcp_bbr
     echo "net.core.default_qdisc=fq" >> /etc/sysctl.d/98-shadowsocks.conf
     echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/98-shadowsocks.conf
 fi
