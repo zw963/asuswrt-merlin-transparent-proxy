@@ -14,7 +14,9 @@ deploy_start
 
 docker ps &>/dev/null || dockerinit /docker
 
+set +e
 docker rm -f dnscrypt-server
+set -e
 
 docker run -d \
        --name=dnscrypt-server \
