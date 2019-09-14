@@ -10,3 +10,7 @@ stamp = 'sdns://AgUAAAAAAAAAAAASZWEtZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
 
 [static.'uw-dns.rubyfish.cn']
 stamp = 'sdns://AgUAAAAAAAAAAAASdXctZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
+
+server_names = ['my-server']
+[static.'my-server']
+stamp = 'sdns://AQcAAAAAAAAAFDE1Mi4zMi4xMzQuMTk4OjIyMzM3IJLXKr0fbOTaM3IwscohjLcPw-VHPNVTVtYV6x7RfEGaIDIuZG5zY3J5cHQtY2VydC5leGFtcGxlXzIub25saW5l'
