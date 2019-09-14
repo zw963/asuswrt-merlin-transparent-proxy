@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ssh "$*" /opt/etc/toggle_proxy.sh disable
+
+self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.9/deploy_start.sh)" && eval "$self"
+
+export target=$1
+
+deploy_start
+
+# ----------------------------------------------------
+#
+# 下面的脚本会在远程路由器之上执行, 请根据所需，酌情修改。
+#
+# ---------------------------------------------------
+
+# 下载 v2ray 插件.
+v2ray_version='1.1.0'
+
+command wget https://github.com/shadowsocks/v2ray-plugin/releases/download/v${v2ray_version}/v2ray-plugin-linux-arm-v${v2ray_version}.tar.gz -O /tmp/v2ray.tar.gz
+tar zxvf /tmp/v2ray.tar.gz
+cp v2ray-plugin_linux_arm5 /opt/etc/
+
+# 开启 v2ray
+sed -i "s#^ARGS=.*#ARGS=\"-c /opt/etc/shadowsocks.json --plugin /opt/etc/v2ray-plugin_linux_arm5\"#" /opt/etc/init.d/S22shadowsocks
+
+/opt/etc/patch_router

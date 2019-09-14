@@ -6,26 +6,29 @@ self="$(curl -sS https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.9/
 
 export target=$1
 
-if [ ! -e ./router/opt/etc/shadowsocks.json ];then
-    echo '请首先定义 router/opt/etc/shadowsocks.json'
+config=./router/ss/opt/etc/shadowsocks.json
+if [ ! -e $config ];then
+    echo "Please add ${config} before deploy."
     exit
 fi
 
+copy router/ss/opt/etc/apply_iptables_rule.sh /opt/etc
+copy router/ss/opt/etc/apply_ipset_rule.sh /opt/etc
+copy router/ss/opt/etc/patch_router /opt/etc
+copy router/ss/opt/etc/switch_proxy.sh /opt/etc
+copy router/ss/opt/etc/shadowsocks.* /opt/etc
+
 copy router/opt/etc/dnscrypt-proxy.toml /opt/etc
 copy router/opt/etc/dnsmasq.d/foreign_domains.conf /opt/etc/dnsmasq.d/foreign_domains.conf
-copy router/opt/etc/apply_ipset_rule.sh /opt/etc
-copy router/opt/etc/apply_iptables_rule.sh /opt/etc
+copy router/opt/etc/restart_dnsmasq /opt/etc
+
 copy router/opt/etc/clean_iptables_rule.sh /opt/etc
 copy router/opt/etc/toggle_proxy.sh /opt/etc
-copy router/opt/etc/switch_proxy.sh /opt/etc
-copy router/opt/etc/patch_router /opt/etc
-copy router/opt/etc/restart_dnsmasq /opt/etc
 copy router/opt/etc/localips /opt/etc
 copy router/opt/etc/update_ip_whitelist /opt/etc
 copy router/opt/etc/update_dns_whitelist /opt/etc
 copy router/opt/etc/enable_swap.sh /opt/etc
 
-copy router/opt/etc/shadowsocks.* /opt/etc
 [ -e router/opt/etc/user_ip_whitelist.txt ] && copy router/opt/etc/user_ip_whitelist.txt /opt/etc
 [ -e router/opt/etc/user_domain_name_whitelist.txt ] && copy router/opt/etc/user_domain_name_whitelist.txt /opt/etc
 [ -e router/opt/etc/user_domain_name_blocklist.txt ] && copy router/opt/etc/user_domain_name_blocklist.txt /opt/etc
@@ -127,6 +130,7 @@ add_service wan-start 'cru a update_ip_whitelist "25 3 * * 2" "/opt/etc/update_i
 add_service wan-start 'cru a update_dns_whitelist "25 4 * * 2" "/opt/etc/update_dns_whitelist"'
 # 确保即使不重启，也将 wan-start 中的任务加入 crontab
 /jffs/scripts/wan-start
+
 # 打开swap
 echo 'Enabling swap'
 /opt/etc/enable_swap.sh

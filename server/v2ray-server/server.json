@@ -6,8 +6,8 @@
     },
     "inbounds": [
         {
-            "port": 22334,
             "protocol": "vmess",
+            "port": 22334,
             "settings": {
                 "clients": [
                     {
@@ -17,13 +17,22 @@
                     }
                 ]
             }
+        },
+        {
+            "protocol": "shadowsocks",
+            "port": 22335, // 监听端口
+            "settings": {
+                "method": "chacha20-ietf-poly1305",
+                "password": "set_yours_password_here"
+            }
         }
     ],
     "outbounds": [
         {
             "protocol": "freedom",
             "settings": {}
-        },{
+        },
+        {
             "protocol": "blackhole",
             "settings": {},
             "tag": "blocked"

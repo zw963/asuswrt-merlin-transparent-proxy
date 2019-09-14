@@ -1,6 +1,7 @@
 /router/ss/opt/etc/shadowsocks.json
-/router/ss/opt/etc/user_domain_name_whitelist.txt
-/router/ss/opt/etc/user_domain_name_blocklist.txt
-/router/ss/opt/etc/user_domain_name_gfwlist.txt
-/router/ss/opt/etc/user_ip_whitelist.txt
-/router/ss/opt/etc/dnscrypt-proxy.sh
+/router/v2ray/opt/etc/v2ray.json
+/router/opt/etc/user_domain_name_whitelist.txt
+/router/opt/etc/user_domain_name_blocklist.txt
+/router/opt/etc/user_domain_name_gfwlist.txt
+/router/opt/etc/user_ip_whitelist.txt
+/router/opt/etc/dnscrypt-proxy.sh

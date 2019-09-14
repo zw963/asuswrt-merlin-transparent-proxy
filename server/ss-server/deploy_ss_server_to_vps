@@ -4,7 +4,7 @@ self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.4.6/depl
 
 export target=$1
 
-copy ss-server/server.json /etc/shadowsocks/config.json
+copy server/ss-server/server.json /etc/shadowsocks/config.json
 
 deploy_start
 
@@ -16,7 +16,6 @@ if which ss-server &>/dev/null; then
 fi
 
 # replace `你的密码' to yours REALLY PASSWORD before deploy.
-
 replace_string 'mypassword' "你的密码" /etc/shadowsocks/config.json
 if grep -qs -e '你的密码' /etc/shadowsocks/config.json; then
     echo 'You must specify shadowsocks server password!'

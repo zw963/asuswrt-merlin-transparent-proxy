@@ -6,18 +6,19 @@ export target=$1
 
 function postinstall () {
     set -u
-    cat <<HEREDOC > router/opt/etc/v2ray.json
+    cat <<HEREDOC > router/v2ray/opt/etc/v2ray.json
 {
     "inbounds": [
         {
-            "port": 1081, // 监听端口
-            "protocol": "socks", // 入口协议为 SOCKS 5
+            "protocol": "dokodemo-door",
+            "port": 1080, // 监听端口
             "sniffing": {
                 "enabled": true,
                 "destOverride": ["http", "tls"]
             },
             "settings": {
-                "auth": "noauth"  //socks的认证设置，noauth 代表不认证，由于 socks 通常在客户端使用，所以这里不认证
+                "network": "tcp,udp",
+                "followRedirect": true // 这里要为 true 才能接受来自 iptables 的流量
             }
         }
     ],
@@ -28,7 +29,7 @@ function postinstall () {
                 "vnext": [
                     {
                         "address": "${targetip}",
-                        "port": "SERVER_PORT",
+                        "port": SERVER_PORT,
                         "users": [
                             {
                                 "id": "NEWUUID",  // 用户 ID，必须与服务器端配置相同
@@ -44,14 +45,20 @@ function postinstall () {
 HEREDOC
 }
 
-copy v2ray-server/server.json /etc/v2ray/config.json
+copy server/v2ray-server/server.json /etc/v2ray/config.json
 
 deploy_start
 
 # Following code is execute on remote VPS
 
+if grep -qs -e 'set_yours_password_here' /etc/v2ray/config.json; then
+    echo 'v2ray server served as a shadowsocks server too.'
+    echo "You must set shadowsocks server password in \`server/v2ray-server/server.json'!"
+    exit
+fi
+
 wget https://install.direct/go.sh
-# bash go.sh
+bash go.sh
 
 uuid=$(uuidgen)
 
@@ -96,6 +103,8 @@ sysctl -p > /dev/null
 # sysctl net.ipv4.tcp_available_congestion_control |grep bbr
 # sysctl -n net.ipv4.tcp_congestion_control |grep bbr
 
+mkdir -p /var/log/v2ray
+
 if [[ -e /etc/redhat-release && $(cat /etc/redhat-release) =~ CentOS ]]; then
     systemctl enable v2ray
     systemctl restart v2ray
@@ -106,9 +115,19 @@ elif [[ $(cat /etc/issue) =~ Ubuntu|Mint|Deepin ]]; then
     systemctl status v2ray
 fi
 
-server_port=$(cat /etc/v2ray/config.json |grep 'inbounds"' -A2 |tail -n1|grep -o '[0-9]*')
-expose_port $server_port
+v2ray_port=$(cat /etc/v2ray/config.json |grep '"inbounds"' -A10 |grep '"protocol" *: *"vmess"' -A3 |grep '"port"' |grep -o '[0-9]*')
+ss_port=$(cat /etc/v2ray/config.json |grep '"inbounds"' -A20 |grep '"protocol" *: *"shadowsocks"' -A3 |grep '"port"' |grep -o '[0-9]*')
+expose_port $v2ray_port
+expose_port $ss_port
 
-echo "Your's server port: [0m[33m${server_port}[0m"
-echo "Your's server id (password): [0m[33m${uuid}[0m"
-echo "replace SERVER_PORT and NEWUUID in router/opt/etc/v2ray.json with above value."
+ss_encrypt_method=$(cat /etc/v2ray/config.json |grep '"inbounds"' -A30 |grep '"protocol" *: *"shadowsocks"' -A10 |grep '"method"'|cut -d':' -f2|cut -d'"' -f2)
+ss_password=$(cat /etc/v2ray/config.json |grep '"inbounds"' -A30 |grep '"protocol" *: *"shadowsocks"' -A10 |grep '"password"'|cut -d':' -f2|cut -d'"' -f2)
+
+echo "Your's server ip: ${targetip}"
+echo "Your's v2ray port: [0m[33m${v2ray_port}[0m"
+echo "Your's v2ray uuid(password): [0m[33m${uuid}[0m"
+echo "replace SERVER_PORT and NEWUUID in router/v2ray/opt/etc/v2ray.json with above value."
+echo
+echo "Your's shadowsocks port: [0m[33m${ss_port}[0m"
+echo "Your's shadowsocks encrypt method: [0m[33m${ss_encrypt_method}[0m"
+echo "Your's shadowsocks password: [0m[33m${ss_password}[0m"

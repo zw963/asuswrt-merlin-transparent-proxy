@@ -11,6 +11,8 @@ stamp = 'sdns://AgUAAAAAAAAAAAASZWEtZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
 [static.'uw-dns.rubyfish.cn']
 stamp = 'sdns://AgUAAAAAAAAAAAASdXctZG5zLnJ1YnlmaXNoLmNuCi9kbnMtcXVlcnk'
 
-server_names = ['my-server']
-[static.'my-server']
+# Redfish DNS maybe not working, please update according to following url.
+# https://www.rubyfish.cn/config-dnscrypt-proxy
+# for better speed, please replace with your own dnscrypt-proxy server instead.
+[static.'your-own-server']
 stamp = 'sdns://AQcAAAAAAAAAFDE1Mi4zMi4xMzQuMTk4OjIyMzM3IJLXKr0fbOTaM3IwscohjLcPw-VHPNVTVtYV6x7RfEGaIDIuZG5zY3J5cHQtY2VydC5leGFtcGxlXzIub25saW5l'
