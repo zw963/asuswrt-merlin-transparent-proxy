@@ -75,12 +75,20 @@ else
     opkg install iptables
 fi
 
-# wget https://github.com/v2ray/v2ray-core/releases/download/v4.20.0/v2ray-linux-arm.zip
-# mkdir v2ray && unzip v2ray-linux-arm.zip -d v2ray
-# cp v2ray/v2ray* v2ray/v2ctl* /opt/sbin/
-# rm -f /opt/sbin/*.sig
-# chmod +x /opt/sbin/v2ctl* /opt/sbin/v2ray*
-# echo 'v2ray is installed'
+v2ray_version=4.20.0
+wget https://github.com/v2ray/v2ray-core/releases/download/v${v2ray_version}/v2ray-linux-arm.zip
+mkdir -p v2ray && unzip v2ray-linux-arm.zip -d v2ray
+cd v2ray/
+chmod +x v2ctl* v2ray*
+./v2ray -version
+
+if $? == 0; then
+    cp v2ray v2ray_armv7 v2ctl v2ctl_armv7 geoip.dat geosite.dat /opt/sbin/
+    echo 'v2ray is installed'
+else
+    echo 'v2ray install failed, please router if support this version.'
+    exit
+fi
 
 cat <<'HEREDOC' > /opt/etc/init.d/S22v2ray
 #!/bin/sh
