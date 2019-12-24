@@ -21,15 +21,15 @@ if [ -d "$dnsmasq_dir" ]; then
         echo "conf-dir=$dnsmasq_dir/,*.conf" >> /etc/dnsmasq.conf
     fi
 
-    # 开启日志.
-    if ! grep -qs "^log-queries$" /etc/dnsmasq.conf; then
-        echo 'log-queries' >> /etc/dnsmasq.conf
-    fi
+    # # 开启日志.
+    # if ! grep -qs "^log-queries$" /etc/dnsmasq.conf; then
+    #     echo 'log-queries' >> /etc/dnsmasq.conf
+    # fi
 
-    # 输出日志到 /var/log/dnsmasq.log
-    if ! grep -qs "^log-facility=/var/log/dnsmasq\.log$" /etc/dnsmasq.conf; then
-        echo 'log-facility=/var/log/dnsmasq.log' >> /etc/dnsmasq.conf
-    fi
+    # # 输出日志到 /var/log/dnsmasq.log
+    # if ! grep -qs "^log-facility=/var/log/dnsmasq\.log$" /etc/dnsmasq.conf; then
+    #     echo 'log-facility=/var/log/dnsmasq.log' >> /etc/dnsmasq.conf
+    # fi
 
     accelerated=accelerated-domains.china.conf
     google=google.china.conf
