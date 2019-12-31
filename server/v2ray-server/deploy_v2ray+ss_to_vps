@@ -7,6 +7,9 @@ export target=$1
 function postinstall () {
     set -u
     cat <<HEREDOC > router/v2ray/opt/etc/v2ray.json
+// server 部署完成后，自动生成适用于 router 的 v2ray 脚本。
+// 记得替换 NEWUUID 为实际生成的数值。
+// 然后运行 ./v2ray+dnsmasq+dnscrypt2 admin@router.asus.com 部署到路由器。
 {
     "inbounds": [
         {
@@ -29,7 +32,7 @@ function postinstall () {
                 "vnext": [
                     {
                         "address": "${targetip}",
-                        "port": SERVER_PORT,
+                        "port": 22334,
                         "users": [
                             {
                                 "id": "NEWUUID",  // 用户 ID，必须与服务器端配置相同
@@ -45,17 +48,17 @@ function postinstall () {
 HEREDOC
 }
 
+if grep -qs -e 'set_yours_password_here' server/v2ray-server/server.json; then
+    echo 'v2ray server served as a shadowsocks server too.'
+    echo "You must set shadowsocks server password in \`server/v2ray-server/server.json'!"
+    exit
+fi
+
 copy server/v2ray-server/server.json /etc/v2ray/config.json
 
 deploy_start
 
 # Following code is execute on remote VPS
-
-if grep -qs -e 'set_yours_password_here' /etc/v2ray/config.json; then
-    echo 'v2ray server served as a shadowsocks server too.'
-    echo "You must set shadowsocks server password in \`server/v2ray-server/server.json'!"
-    exit
-fi
 
 wget https://install.direct/go.sh
 bash go.sh
@@ -123,10 +126,9 @@ expose_port $ss_port
 ss_encrypt_method=$(cat /etc/v2ray/config.json |grep '"inbounds"' -A30 |grep '"protocol" *: *"shadowsocks"' -A10 |grep '"method"'|cut -d':' -f2|cut -d'"' -f2)
 ss_password=$(cat /etc/v2ray/config.json |grep '"inbounds"' -A30 |grep '"protocol" *: *"shadowsocks"' -A10 |grep '"password"'|cut -d':' -f2|cut -d'"' -f2)
 
-echo "Your's server ip: ${targetip}"
+echo "Your's server ip: [0m[33m${targetip}[0m"
 echo "Your's v2ray port: [0m[33m${v2ray_port}[0m"
-echo "Your's v2ray uuid(password): [0m[33m${uuid}[0m"
-echo "replace SERVER_PORT and NEWUUID in router/v2ray/opt/etc/v2ray.json with above value."
+echo "Please replace [0m[33mNEWUUID[0m in router/v2ray/opt/etc/v2ray.json with [0m[33m${uuid}[0m before deploy on router."
 echo
 echo "Your's shadowsocks port: [0m[33m${ss_port}[0m"
 echo "Your's shadowsocks encrypt method: [0m[33m${ss_encrypt_method}[0m"

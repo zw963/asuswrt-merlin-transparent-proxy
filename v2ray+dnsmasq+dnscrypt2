@@ -8,7 +8,7 @@ export target=$1
 
 config=./router/v2ray/opt/etc/v2ray.json
 if [ ! -e $config ];then
-    echo "Please add ${config} before deploy."
+    echo "Please add ${config} or generate it use server/v2ray-server/deploy_v2ray+ss_to_vps before deploy."
     exit
 fi
 
@@ -16,7 +16,7 @@ copy router/v2ray/opt/etc/apply_iptables_rule.sh /opt/etc
 copy router/v2ray/opt/etc/apply_ipset_rule.sh /opt/etc
 copy router/v2ray/opt/etc/patch_router /opt/etc
 copy router/v2ray/opt/etc/switch_proxy.sh /opt/etc
-copy router/v2ray/opt/etc/v2ray.* /opt/etc
+copy $config /opt/etc
 
 # DNS
 copy router/opt/etc/dnscrypt-proxy.toml /opt/etc
@@ -75,18 +75,18 @@ else
     opkg install iptables
 fi
 
-v2ray_version=4.20.0
+v2ray_version=4.22.0
 wget https://github.com/v2ray/v2ray-core/releases/download/v${v2ray_version}/v2ray-linux-arm.zip
-mkdir -p v2ray && unzip v2ray-linux-arm.zip -d v2ray
+mkdir -p v2ray && unzip v2ray-linux-arm.zip -d v2ray -o
 cd v2ray/
 chmod +x v2ctl* v2ray*
 ./v2ray -version
 
-if $? == 0; then
+if [ $? == 0 ]; then
     cp v2ray v2ray_armv7 v2ctl v2ctl_armv7 geoip.dat geosite.dat /opt/sbin/
     echo 'v2ray is installed'
 else
-    echo 'v2ray install failed, please router if support this version.'
+    echo 'v2ray install failed, please check router if support this version.'
     exit
 fi
 
