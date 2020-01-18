@@ -10,15 +10,9 @@ else
     alias iptables='/opt/sbin/iptables'
 fi
 
-# clean old version rule, maybe delete later.
-while iptables -t nat -C PREROUTING -p tcp -j SHADOWSOCKS_TCP 2>/dev/null; do
-    iptables -t nat -D PREROUTING -p tcp -j SHADOWSOCKS_TCP
-done
-iptables -t nat -F SHADOWSOCKS_TCP 2>/dev/null          # flush
-iptables -t nat -X SHADOWSOCKS_TCP 2>/dev/null          # --delete-chain
-
 while iptables -t nat -C PREROUTING -p tcp -j PROXY_TCP 2>/dev/null; do
     iptables -t nat -D PREROUTING -p tcp -j PROXY_TCP
+    iptables -t nat -D OUTPUT -p tcp -j PROXY_TCP
 done
 iptables -t nat -F PROXY_TCP 2>/dev/null          # flush
 iptables -t nat -X PROXY_TCP 2>/dev/null          # --delete-chain

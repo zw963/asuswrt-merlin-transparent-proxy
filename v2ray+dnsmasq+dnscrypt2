@@ -168,5 +168,5 @@ set -e
 /jffs/scripts/services-start
 
 # 在所有服务启动之后, 运行 /opt/etc/patch_router 为 dnsmasq 追加配置, 并重启 dnsmasq 服务.
-add_service services-start '[ -f /tmp/patch_router_is_run ] || /opt/etc/patch_router'
+add_service services-start '[ -f /tmp/patch_router_was_run_at ] || /opt/etc/patch_router'
 /opt/etc/patch_router
