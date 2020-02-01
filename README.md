@@ -1,4 +1,4 @@
-If you have a more modern router.(e.g AC5300U), pleasse consider use [this](https://github.com/zw963/asuswrt-merlin-v2ray).
+If you have a more modern router.(e.g AC5300U), pleasse consider use [this](https://github.com/zw963/asuswrt-merlin-v2ray) script.
 
 # Use Asuswrt Merlin as a transparent proxy
 
