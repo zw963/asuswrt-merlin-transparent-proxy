@@ -150,10 +150,11 @@ add_service wan-start 'cru a update_dns_whitelist "25 4 * * 2" "/opt/etc/update_
 # 确保即使不重启，也将 wan-start 中的任务加入 crontab
 /jffs/scripts/wan-start
 
-# 打开swap
-echo 'Enabling swap'
-/opt/etc/enable_swap.sh
-add_service post-mount '/opt/etc/enable_swap.sh'
+# Disable enable swap file because merlin introduce it in AMPM.
+# # 打开swap
+# echo 'Enabling swap'
+# /opt/etc/enable_swap.sh
+# add_service post-mount '/opt/etc/enable_swap.sh'
 
 # 更新 IP 白名单和 DNS 白名单.
 /opt/etc/update_ip_whitelist
