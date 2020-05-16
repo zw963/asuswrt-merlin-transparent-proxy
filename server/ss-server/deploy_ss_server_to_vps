@@ -1,6 +1,7 @@
 #!/bin/sh
 
-self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.5.7/deploy_start.sh)" && eval "$self"
+self="$(curl https://raw.githubusercontent.com/zw963/deployment_bash/v0.6.0/deploy_start.sh)" && eval "$self"
+# self="$(cat ~/Project/deployment_bash/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -13,6 +14,8 @@ copy server/ss-server/server.json /etc/shadowsocks/config.json
 
 deploy_start
 
+set -eu
+
 # Following code is execute on remote VPS
 
 if which ss-server &>/dev/null; then
@@ -20,7 +23,7 @@ if which ss-server &>/dev/null; then
     exit
 fi
 
-cat <<'HEREDOC' > /etc/sysctl.d/98-shadowsocks.conf
+cat <<'HEREDOC' >> /etc/sysctl.conf
 fs.file-max=51200
 
 net.core.rmem_max=67108864
@@ -30,7 +33,6 @@ net.core.somaxconn=4096
 
 net.ipv4.tcp_syncookies=1
 net.ipv4.tcp_tw_reuse=1
-net.ipv4.tcp_tw_recycle=0
 net.ipv4.tcp_fin_timeout=30
 net.ipv4.tcp_keepalive_time=1200
 net.ipv4.ip_local_port_range=10000 65000
@@ -40,34 +42,24 @@ net.ipv4.tcp_mem=25600 51200 102400
 net.ipv4.tcp_rmem=4096 87380 67108864
 net.ipv4.tcp_wmem=4096 65536 67108864
 net.ipv4.tcp_mtu_probing=1
-net.ipv4.tcp_congestion_control=hybla
 
 # 开启内核 fastopen, Linux 3.7 以上支持, 3.13 才默认开启.
 # 等价于 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
 net.ipv4.tcp_fastopen=3
 HEREDOC
 
-# stolen from https://raw.githubusercontent.com/teddysun/across/master/bbr.sh
-version_ge(){
-    test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"
-}
-kernel_version=$(uname -r | cut -d- -f1)
-
-# 如果内核大于 4.9, 开启 bbr
-if version_ge ${kernel_version} 4.9; then
-    modprobe tcp_bbr
-    echo "net.core.default_qdisc=fq" >> /etc/sysctl.d/98-shadowsocks.conf
-    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/98-shadowsocks.conf
+if kernel_version_greater_than 4.9; then
+    modprobe tcp_bbr && lsmod | grep bbr
+    echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
 fi
-
 sysctl -p > /dev/null
 
 # test bbr is enabled
 sysctl net.ipv4.tcp_available_congestion_control |grep bbr
 sysctl -n net.ipv4.tcp_congestion_control |grep bbr
-lsmod | grep bbr
 
-version='3.2.0'
+version='3.3.4'
 
 package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
         udns-devel libev-devel libsodium-devel rng-tools c-ares-devel
