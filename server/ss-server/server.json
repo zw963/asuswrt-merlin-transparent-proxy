@@ -1,6 +1,6 @@
 {
     "server": "0.0.0.0",
-    "server_port": 1080,
+    "server_port": 22336,
     "password": "set_yours_password_here",
     "timeout": 30,
     "method": "chacha20-ietf-poly1305"
