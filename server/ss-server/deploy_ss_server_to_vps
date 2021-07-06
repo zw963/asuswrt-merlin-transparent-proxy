@@ -18,7 +18,7 @@ set -eu
 
 # Following code is execute on remote VPS
 
-if which ss-server &>/dev/null; then
+if which ssserver &>/dev/null; then
     echo 'ss-server is exist, skip deploy.'
     exit
 fi
@@ -59,10 +59,10 @@ sysctl -p > /dev/null
 sysctl net.ipv4.tcp_available_congestion_control |grep bbr
 sysctl -n net.ipv4.tcp_congestion_control |grep bbr
 
-version='3.3.4'
+version='1.11.1'
 
-package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
-        udns-devel libev-devel libsodium-devel rng-tools c-ares-devel
+# package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
+#         udns-devel libev-devel libsodium-devel rng-tools c-ares-devel
 
 # sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
@@ -74,13 +74,44 @@ elif [[ $(cat /etc/issue) =~ Ubuntu|Mint|Deepin ]]; then
     service rng-tools status
 fi
 
-[ -d shadowsocks-libev-${version} ] || download_and_extract https://github.com/shadowsocks/shadowsocks-libev/releases/download/v${version}/shadowsocks-libev-${version}.tar.gz
+# https://github.com/shadowsocks/shadowsocks-rust/releases/download/v1.11.1/shadowsocks-v1.11.1.x86_64-unknown-linux-gnu.tar.xz
+# [ -d shadowsocks-rust-${version} ] || download_and_extract https://github.com/shadowsocks/shadowsocks-rust/releases/download/v${version}/shadowsocks-v${version}.x86_64-unknown-linux-gnu.tar.xz
 
-cd shadowsocks-libev-${version}/ &&
-    configure shadowsocks &&
-    make &&
-    make install-strip &&
-    daemon shadowsocks '/usr/bin/ss-server -u --fast-open --no-delay -c /etc/shadowsocks/config.json -vvv'
+file=shadowsocks-v${version}.x86_64-unknown-linux-gnu.tar.xz
+wget https://github.com/shadowsocks/shadowsocks-rust/releases/download/v${version}/$file
+dest=shadowsocks-rust-${version}
+mkdir -p $dest
+tar -Jxvf $file -C "$dest"
+
+cd $dest/ && cp -v sslocal ssserver ssurl ssmanager /usr/bin/ && cd ..
+
+rm -f $file
+rm -rf $dest
+
+/usr/bin/ssserver --tcp-fast-open --config /etc/shadowsocks/config.json
+
+daemon shadowsocks '/usr/bin/ssserver --tcp-fast-open --config /etc/shadowsocks/config.json'
+
+# cat <<'HEREDOC' > /etc/systemd/system/shadowsocks@.service
+#      [Unit]
+#      Description=Shadowsocks-Libev Custom Server Service for %I
+#      After=syslog.target network.target
+
+#      [Service]
+#      Type=simple
+#      Restart=always
+#      LimitCORE=infinity
+#      LimitNOFILE=51200
+#      LimitNPROC=51200
+#      Environment=LD_LIBRARY_PATH=/usr/lib64
+#      ExecStart=/usr/bin/ss-server -u --fast-open --no-delay -c /etc/shadowsocks/%i.json
+#      ExecStop=/bin/kill -TERM $MAINPID
+#      ExecReload=/bin/kill -HUP $MAINPID
+#      PIDFile=/var/run/shadowsocks.pid
+
+#      [Install]
+#      WantedBy=multi-user.target
+# HEREDOC
 
 server_port=$(cat /etc/shadowsocks/config.json |grep 'server_port"' |grep -o '[0-9]*')
 expose_port $server_port
