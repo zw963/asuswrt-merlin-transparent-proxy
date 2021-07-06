@@ -90,6 +90,9 @@ rm -rf $dest
 
 /usr/bin/ssserver --tcp-fast-open --config /etc/shadowsocks/config.json
 
+# systemctl stop firewalld
+# systemctl disable firewalld
+
 daemon shadowsocks '/usr/bin/ssserver --tcp-fast-open --config /etc/shadowsocks/config.json'
 
 # cat <<'HEREDOC' > /etc/systemd/system/shadowsocks@.service
