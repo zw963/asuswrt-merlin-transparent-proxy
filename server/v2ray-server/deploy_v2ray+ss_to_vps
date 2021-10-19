@@ -67,7 +67,7 @@ uuid=$(uuidgen)
 
 replace_string 'NEWUUID' "${uuid}" /etc/v2ray/config.json
 
-cat <<'HEREDOC' > /etc/sysctl.d/98-shadowsocks.conf
+cat <<'HEREDOC' > /etc/sysctl.d/99-shadowsocks.conf
 fs.file-max=51200
 
 net.core.rmem_max=67108864
@@ -96,8 +96,8 @@ HEREDOC
 
 if kernel_version_greater_than 4.9; then
     modprobe tcp_bbr && lsmod | grep bbr
-    echo "net.core.default_qdisc=fq" >> /etc/sysctl.d/98-shadowsocks.conf
-    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/98-shadowsocks.conf
+    echo "net.core.default_qdisc=fq" >> /etc/sysctl.d/99-shadowsocks.conf
+    echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/99-shadowsocks.conf
 fi
 
 sysctl -p > /dev/null
