@@ -1,6 +1,6 @@
 #!/bin/sh
 
-self="$(\curl -sS https://gitee.com/zw963/deployment_bash/raw/v0.7.2/deploy_start.sh)" && eval "$self"
+self="$(\curl -sS https://gitlab.com/zw963/deployment_bash/-/raw/v0.8.1/deploy_start.sh)" && eval "$self"
 
 export target=$1
 
@@ -33,7 +33,7 @@ fi
 
 config_sysctl_for_proxy
 
-version='1.12.5'
+version='1.17.0'
 
 # package compile-tools pcre-devel asciidoc xmlto mbedtls-devel \
     #         udns-devel libev-devel libsodium-devel rng-tools c-ares-devel
